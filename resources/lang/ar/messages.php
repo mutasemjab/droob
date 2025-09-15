@@ -530,7 +530,7 @@ return [
     'error_updating_status' => 'خطأ في تحديث الحالة',
     'error_updating_activate' => 'خطأ في تحديث حالة التفعيل',
     'error_bulk_update' => 'خطأ في التحديث المجمع',
-     'app_configurations' => 'إعدادات التطبيق',
+       'app_configurations' => 'إعدادات التطبيق',
     'add_new_config' => 'إضافة إعداد جديد',
     'create_first_config' => 'إنشاء أول إعداد',
     'edit_config' => 'تعديل الإعداد',
@@ -541,22 +541,46 @@ return [
     'id' => 'الرقم التعريفي',
     'email' => 'البريد الإلكتروني',
     'phone' => 'رقم الهاتف',
-    'google_play_link' => 'رابط متجر جوجل بلاي',
-    'app_store_link' => 'رابط متجر آب ستور',
-    'hawawi_link' => 'رابط متجر هواوي',
-    'min_version_google_play' => 'الحد الأدنى للإصدار (جوجل بلاي)',
-    'min_version_app_store' => 'الحد الأدنى للإصدار (آب ستور)',
-    'min_version_hawawi' => 'الحد الأدنى للإصدار (هواوي)',
+    'basic_information' => 'المعلومات الأساسية',
+    'user_app_configuration' => 'إعدادات تطبيق المستخدم',
+    'driver_app_configuration' => 'إعدادات تطبيق السائق',
+    'user_app_links' => 'روابط تطبيق المستخدم',
+    'driver_app_links' => 'روابط تطبيق السائق',
+    
+    // User App Fields
+    'google_play_link_user_app' => 'رابط متجر جوجل بلاي (تطبيق المستخدم)',
+    'app_store_link_user_app' => 'رابط متجر آب ستور (تطبيق المستخدم)',
+    'hawawi_link_user_app' => 'رابط متجر هواوي (تطبيق المستخدم)',
+    'min_version_google_play_user_app' => 'الحد الأدنى للإصدار جوجل بلاي (تطبيق المستخدم)',
+    'min_version_app_store_user_app' => 'الحد الأدنى للإصدار آب ستور (تطبيق المستخدم)',
+    'min_version_hawawi_user_app' => 'الحد الأدنى للإصدار هواوي (تطبيق المستخدم)',
+    
+    // Driver App Fields
+    'google_play_link_driver_app' => 'رابط متجر جوجل بلاي (تطبيق السائق)',
+    'app_store_link_driver_app' => 'رابط متجر آب ستور (تطبيق السائق)',
+    'hawawi_link_driver_app' => 'رابط متجر هواوي (تطبيق السائق)',
+    'min_version_google_play_driver_app' => 'الحد الأدنى للإصدار جوجل بلاي (تطبيق السائق)',
+    'min_version_app_store_driver_app' => 'الحد الأدنى للإصدار آب ستور (تطبيق السائق)',
+    'min_version_hawawi_driver_app' => 'الحد الأدنى للإصدار هواوي (تطبيق السائق)',
+    
     'created_at' => 'تاريخ الإنشاء',
     'updated_at' => 'تاريخ التحديث',
     
     // Form Placeholders
     'enter_email' => 'أدخل عنوان البريد الإلكتروني',
     'enter_phone' => 'أدخل رقم الهاتف',
-    'enter_google_play_link' => 'أدخل رابط متجر جوجل بلاي',
-    'enter_app_store_link' => 'أدخل رابط متجر آب ستور',
-    'enter_hawawi_link' => 'أدخل رابط متجر هواوي',
+    'enter_google_play_link_user_app' => 'أدخل رابط متجر جوجل بلاي لتطبيق المستخدم',
+    'enter_app_store_link_user_app' => 'أدخل رابط متجر آب ستور لتطبيق المستخدم',
+    'enter_hawawi_link_user_app' => 'أدخل رابط متجر هواوي لتطبيق المستخدم',
+    'enter_google_play_link_driver_app' => 'أدخل رابط متجر جوجل بلاي لتطبيق السائق',
+    'enter_app_store_link_driver_app' => 'أدخل رابط متجر آب ستور لتطبيق السائق',
+    'enter_hawawi_link_driver_app' => 'أدخل رابط متجر هواوي لتطبيق السائق',
     'enter_version' => 'أدخل رقم الإصدار (مثال: 1.0.0)',
+    
+    // Store Names
+    'google_play' => 'جوجل بلاي',
+    'app_store' => 'آب ستور',
+    'hawawi' => 'هواوي',
     
     // Actions
     'actions' => 'الإجراءات',

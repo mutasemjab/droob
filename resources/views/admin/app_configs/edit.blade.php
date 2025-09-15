@@ -5,7 +5,7 @@
 @section('content')
 <div class="container">
     <div class="row">
-        <div class="col-md-8 offset-md-2">
+        <div class="col-md-10 offset-md-1">
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h4 class="mb-0">{{ __('messages.edit_config') }}</h4>
@@ -53,104 +53,222 @@
                             </div>
                         </div>
 
-                        <div class="row">
-                            <!-- Google Play Link -->
-                            <div class="col-md-12">
-                                <div class="mb-3">
-                                    <label for="google_play_link" class="form-label">{{ __('messages.google_play_link') }}</label>
-                                    <input type="url" 
-                                           class="form-control @error('google_play_link') is-invalid @enderror" 
-                                           id="google_play_link" 
-                                           name="google_play_link" 
-                                           value="{{ old('google_play_link', $appConfig->google_play_link) }}"
-                                           placeholder="{{ __('messages.enter_google_play_link') }}">
-                                    @error('google_play_link')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
+                        <!-- User App Section -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0"><i class="fas fa-user"></i> {{ __('messages.user_app_configuration') }}</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <!-- User App Google Play Link -->
+                                    <div class="col-md-12">
+                                        <div class="mb-3">
+                                            <label for="google_play_link_user_app" class="form-label">{{ __('messages.google_play_link_user_app') }}</label>
+                                            <input type="url" 
+                                                   class="form-control @error('google_play_link_user_app') is-invalid @enderror" 
+                                                   id="google_play_link_user_app" 
+                                                   name="google_play_link_user_app" 
+                                                   value="{{ old('google_play_link_user_app', $appConfig->google_play_link_user_app) }}"
+                                                   placeholder="{{ __('messages.enter_google_play_link_user_app') }}">
+                                            @error('google_play_link_user_app')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <!-- User App App Store Link -->
+                                    <div class="col-md-12">
+                                        <div class="mb-3">
+                                            <label for="app_store_link_user_app" class="form-label">{{ __('messages.app_store_link_user_app') }}</label>
+                                            <input type="url" 
+                                                   class="form-control @error('app_store_link_user_app') is-invalid @enderror" 
+                                                   id="app_store_link_user_app" 
+                                                   name="app_store_link_user_app" 
+                                                   value="{{ old('app_store_link_user_app', $appConfig->app_store_link_user_app) }}"
+                                                   placeholder="{{ __('messages.enter_app_store_link_user_app') }}">
+                                            @error('app_store_link_user_app')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <!-- User App Hawawi Link -->
+                                    <div class="col-md-12">
+                                        <div class="mb-3">
+                                            <label for="hawawi_link_user_app" class="form-label">{{ __('messages.hawawi_link_user_app') }}</label>
+                                            <input type="url" 
+                                                   class="form-control @error('hawawi_link_user_app') is-invalid @enderror" 
+                                                   id="hawawi_link_user_app" 
+                                                   name="hawawi_link_user_app" 
+                                                   value="{{ old('hawawi_link_user_app', $appConfig->hawawi_link_user_app) }}"
+                                                   placeholder="{{ __('messages.enter_hawawi_link_user_app') }}">
+                                            @error('hawawi_link_user_app')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <!-- User App Minimum Versions -->
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="min_version_google_play_user_app" class="form-label">{{ __('messages.min_version_google_play_user_app') }}</label>
+                                            <input type="text" 
+                                                   class="form-control @error('min_version_google_play_user_app') is-invalid @enderror" 
+                                                   id="min_version_google_play_user_app" 
+                                                   name="min_version_google_play_user_app" 
+                                                   value="{{ old('min_version_google_play_user_app', $appConfig->min_version_google_play_user_app) }}"
+                                                   placeholder="{{ __('messages.enter_version') }}">
+                                            @error('min_version_google_play_user_app')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="min_version_app_store_user_app" class="form-label">{{ __('messages.min_version_app_store_user_app') }}</label>
+                                            <input type="text" 
+                                                   class="form-control @error('min_version_app_store_user_app') is-invalid @enderror" 
+                                                   id="min_version_app_store_user_app" 
+                                                   name="min_version_app_store_user_app" 
+                                                   value="{{ old('min_version_app_store_user_app', $appConfig->min_version_app_store_user_app) }}"
+                                                   placeholder="{{ __('messages.enter_version') }}">
+                                            @error('min_version_app_store_user_app')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="min_version_hawawi_user_app" class="form-label">{{ __('messages.min_version_hawawi_user_app') }}</label>
+                                            <input type="text" 
+                                                   class="form-control @error('min_version_hawawi_user_app') is-invalid @enderror" 
+                                                   id="min_version_hawawi_user_app" 
+                                                   name="min_version_hawawi_user_app" 
+                                                   value="{{ old('min_version_hawawi_user_app', $appConfig->min_version_hawawi_user_app) }}"
+                                                   placeholder="{{ __('messages.enter_version') }}">
+                                            @error('min_version_hawawi_user_app')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="row">
-                            <!-- App Store Link -->
-                            <div class="col-md-12">
-                                <div class="mb-3">
-                                    <label for="app_store_link" class="form-label">{{ __('messages.app_store_link') }}</label>
-                                    <input type="url" 
-                                           class="form-control @error('app_store_link') is-invalid @enderror" 
-                                           id="app_store_link" 
-                                           name="app_store_link" 
-                                           value="{{ old('app_store_link', $appConfig->app_store_link) }}"
-                                           placeholder="{{ __('messages.enter_app_store_link') }}">
-                                    @error('app_store_link')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
+                        <!-- Driver App Section -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-success text-white">
+                                <h5 class="mb-0"><i class="fas fa-car"></i> {{ __('messages.driver_app_configuration') }}</h5>
                             </div>
-                        </div>
-
-                        <div class="row">
-                            <!-- Hawawi Link -->
-                            <div class="col-md-12">
-                                <div class="mb-3">
-                                    <label for="hawawi_link" class="form-label">{{ __('messages.hawawi_link') }}</label>
-                                    <input type="url" 
-                                           class="form-control @error('hawawi_link') is-invalid @enderror" 
-                                           id="hawawi_link" 
-                                           name="hawawi_link" 
-                                           value="{{ old('hawawi_link', $appConfig->hawawi_link) }}"
-                                           placeholder="{{ __('messages.enter_hawawi_link') }}">
-                                    @error('hawawi_link')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
+                            <div class="card-body">
+                                <div class="row">
+                                    <!-- Driver App Google Play Link -->
+                                    <div class="col-md-12">
+                                        <div class="mb-3">
+                                            <label for="google_play_link_driver_app" class="form-label">{{ __('messages.google_play_link_driver_app') }}</label>
+                                            <input type="url" 
+                                                   class="form-control @error('google_play_link_driver_app') is-invalid @enderror" 
+                                                   id="google_play_link_driver_app" 
+                                                   name="google_play_link_driver_app" 
+                                                   value="{{ old('google_play_link_driver_app', $appConfig->google_play_link_driver_app) }}"
+                                                   placeholder="{{ __('messages.enter_google_play_link_driver_app') }}">
+                                            @error('google_play_link_driver_app')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
 
-                        <div class="row">
-                            <!-- Minimum Versions -->
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label for="min_version_google_play" class="form-label">{{ __('messages.min_version_google_play') }}</label>
-                                    <input type="text" 
-                                           class="form-control @error('min_version_google_play') is-invalid @enderror" 
-                                           id="min_version_google_play" 
-                                           name="min_version_google_play" 
-                                           value="{{ old('min_version_google_play', $appConfig->min_version_google_play) }}"
-                                           placeholder="{{ __('messages.enter_version') }}">
-                                    @error('min_version_google_play')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
+                                <div class="row">
+                                    <!-- Driver App App Store Link -->
+                                    <div class="col-md-12">
+                                        <div class="mb-3">
+                                            <label for="app_store_link_driver_app" class="form-label">{{ __('messages.app_store_link_driver_app') }}</label>
+                                            <input type="url" 
+                                                   class="form-control @error('app_store_link_driver_app') is-invalid @enderror" 
+                                                   id="app_store_link_driver_app" 
+                                                   name="app_store_link_driver_app" 
+                                                   value="{{ old('app_store_link_driver_app', $appConfig->app_store_link_driver_app) }}"
+                                                   placeholder="{{ __('messages.enter_app_store_link_driver_app') }}">
+                                            @error('app_store_link_driver_app')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label for="min_version_app_store" class="form-label">{{ __('messages.min_version_app_store') }}</label>
-                                    <input type="text" 
-                                           class="form-control @error('min_version_app_store') is-invalid @enderror" 
-                                           id="min_version_app_store" 
-                                           name="min_version_app_store" 
-                                           value="{{ old('min_version_app_store', $appConfig->min_version_app_store) }}"
-                                           placeholder="{{ __('messages.enter_version') }}">
-                                    @error('min_version_app_store')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
+                                <div class="row">
+                                    <!-- Driver App Hawawi Link -->
+                                    <div class="col-md-12">
+                                        <div class="mb-3">
+                                            <label for="hawawi_link_driver_app" class="form-label">{{ __('messages.hawawi_link_driver_app') }}</label>
+                                            <input type="url" 
+                                                   class="form-control @error('hawawi_link_driver_app') is-invalid @enderror" 
+                                                   id="hawawi_link_driver_app" 
+                                                   name="hawawi_link_driver_app" 
+                                                   value="{{ old('hawawi_link_driver_app', $appConfig->hawawi_link_driver_app) }}"
+                                                   placeholder="{{ __('messages.enter_hawawi_link_driver_app') }}">
+                                            @error('hawawi_link_driver_app')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label for="min_version_hawawi" class="form-label">{{ __('messages.min_version_hawawi') }}</label>
-                                    <input type="text" 
-                                           class="form-control @error('min_version_hawawi') is-invalid @enderror" 
-                                           id="min_version_hawawi" 
-                                           name="min_version_hawawi" 
-                                           value="{{ old('min_version_hawawi', $appConfig->min_version_hawawi) }}"
-                                           placeholder="{{ __('messages.enter_version') }}">
-                                    @error('min_version_hawawi')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
+                                <div class="row">
+                                    <!-- Driver App Minimum Versions -->
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="min_version_google_play_driver_app" class="form-label">{{ __('messages.min_version_google_play_driver_app') }}</label>
+                                            <input type="text" 
+                                                   class="form-control @error('min_version_google_play_driver_app') is-invalid @enderror" 
+                                                   id="min_version_google_play_driver_app" 
+                                                   name="min_version_google_play_driver_app" 
+                                                   value="{{ old('min_version_google_play_driver_app', $appConfig->min_version_google_play_driver_app) }}"
+                                                   placeholder="{{ __('messages.enter_version') }}">
+                                            @error('min_version_google_play_driver_app')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="min_version_app_store_driver_app" class="form-label">{{ __('messages.min_version_app_store_driver_app') }}</label>
+                                            <input type="text" 
+                                                   class="form-control @error('min_version_app_store_driver_app') is-invalid @enderror" 
+                                                   id="min_version_app_store_driver_app" 
+                                                   name="min_version_app_store_driver_app" 
+                                                   value="{{ old('min_version_app_store_driver_app', $appConfig->min_version_app_store_driver_app) }}"
+                                                   placeholder="{{ __('messages.enter_version') }}">
+                                            @error('min_version_app_store_driver_app')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label for="min_version_hawawi_driver_app" class="form-label">{{ __('messages.min_version_hawawi_driver_app') }}</label>
+                                            <input type="text" 
+                                                   class="form-control @error('min_version_hawawi_driver_app') is-invalid @enderror" 
+                                                   id="min_version_hawawi_driver_app" 
+                                                   name="min_version_hawawi_driver_app" 
+                                                   value="{{ old('min_version_hawawi_driver_app', $appConfig->min_version_hawawi_driver_app) }}"
+                                                   placeholder="{{ __('messages.enter_version') }}">
+                                            @error('min_version_hawawi_driver_app')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>

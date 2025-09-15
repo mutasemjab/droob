@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\v1\Driver\WithdrawalRequestDriverController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\v1\User\WalletController;
+use App\Http\Controllers\Api\v1\User\AppConfigController;
 use App\Http\Controllers\Api\v1\User\AuthController;
 use App\Http\Controllers\Api\v1\User\UserAddressController;
 use App\Http\Controllers\Api\v1\User\UploadPhotoVoiceController;
@@ -36,6 +37,7 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 Route::group(['prefix' => 'v1/user'], function () {
 
     //---------------- Auth --------------------//
+    Route::get('/appConfig', [AppConfigController::class, 'appConfig']);
     Route::get('/getOptions', [OptionController::class, 'getOptions']);
     Route::post('/check-phone', [AuthController::class, 'checkPhone']);
     Route::post('/register', [AuthController::class, 'register']);

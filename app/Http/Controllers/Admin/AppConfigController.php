@@ -29,17 +29,23 @@ class AppConfigController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'email' => 'nullable|email|max:255',
             'phone' => 'nullable|string|max:20',
-            'google_play_link' => 'nullable|url|max:500',
-            'app_store_link' => 'nullable|url|max:500',
-            'hawawi_link' => 'nullable|url|max:500',
-            'min_version_google_play' => 'nullable|string|max:20',
-            'min_version_app_store' => 'nullable|string|max:20',
-            'min_version_hawawi' => 'nullable|string|max:20',
+            'google_play_link_user_app' => 'nullable|url|max:500',
+            'google_play_link_driver_app' => 'nullable|url|max:500',
+            'app_store_link_user_app' => 'nullable|url|max:500',
+            'app_store_link_driver_app' => 'nullable|url|max:500',
+            'hawawi_link_user_app' => 'nullable|url|max:500',
+            'hawawi_link_driver_app' => 'nullable|url|max:500',
+            'min_version_google_play_user_app' => 'nullable|string|max:20',
+            'min_version_google_play_driver_app' => 'nullable|string|max:20',
+            'min_version_app_store_user_app' => 'nullable|string|max:20',
+            'min_version_app_store_driver_app' => 'nullable|string|max:20',
+            'min_version_hawawi_user_app' => 'nullable|string|max:20',
+            'min_version_hawawi_driver_app' => 'nullable|string|max:20',
         ]);
 
         if ($validator->fails()) {
@@ -53,6 +59,7 @@ class AppConfigController extends Controller
         return redirect()->route('app-configs.index')
             ->with('success', __('messages.app_config_created_successfully'));
     }
+
 
     /**
      * Display the specified resource.
@@ -73,17 +80,23 @@ class AppConfigController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, AppConfig $appConfig)
+     public function update(Request $request, AppConfig $appConfig)
     {
         $validator = Validator::make($request->all(), [
             'email' => 'nullable|email|max:255',
             'phone' => 'nullable|string|max:20',
-            'google_play_link' => 'nullable|url|max:500',
-            'app_store_link' => 'nullable|url|max:500',
-            'hawawi_link' => 'nullable|url|max:500',
-            'min_version_google_play' => 'nullable|string|max:20',
-            'min_version_app_store' => 'nullable|string|max:20',
-            'min_version_hawawi' => 'nullable|string|max:20',
+            'google_play_link_user_app' => 'nullable|url|max:500',
+            'google_play_link_driver_app' => 'nullable|url|max:500',
+            'app_store_link_user_app' => 'nullable|url|max:500',
+            'app_store_link_driver_app' => 'nullable|url|max:500',
+            'hawawi_link_user_app' => 'nullable|url|max:500',
+            'hawawi_link_driver_app' => 'nullable|url|max:500',
+            'min_version_google_play_user_app' => 'nullable|string|max:20',
+            'min_version_google_play_driver_app' => 'nullable|string|max:20',
+            'min_version_app_store_user_app' => 'nullable|string|max:20',
+            'min_version_app_store_driver_app' => 'nullable|string|max:20',
+            'min_version_hawawi_user_app' => 'nullable|string|max:20',
+            'min_version_hawawi_driver_app' => 'nullable|string|max:20',
         ]);
 
         if ($validator->fails()) {
@@ -97,7 +110,6 @@ class AppConfigController extends Controller
         return redirect()->route('app-configs.index')
             ->with('success', __('messages.app_config_updated_successfully'));
     }
-
     /**
      * Remove the specified resource from storage.
      */

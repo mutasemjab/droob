@@ -15,7 +15,7 @@
                 </div>
 
                 <div class="card-body">
-                    
+                 
 
                     @if($appConfigs->count() > 0)
                         <div class="table-responsive">
@@ -25,9 +25,8 @@
                                         <th>{{ __('messages.id') }}</th>
                                         <th>{{ __('messages.email') }}</th>
                                         <th>{{ __('messages.phone') }}</th>
-                                        <th>{{ __('messages.google_play_link') }}</th>
-                                        <th>{{ __('messages.app_store_link') }}</th>
-                                        <th>{{ __('messages.hawawi_link') }}</th>
+                                        <th>{{ __('messages.user_app_links') }}</th>
+                                        <th>{{ __('messages.driver_app_links') }}</th>
                                         <th>{{ __('messages.created_at') }}</th>
                                         <th>{{ __('messages.actions') }}</th>
                                     </tr>
@@ -39,31 +38,48 @@
                                             <td>{{ $config->email ?? '-' }}</td>
                                             <td>{{ $config->phone ?? '-' }}</td>
                                             <td>
-                                                @if($config->google_play_link)
-                                                    <a href="{{ $config->google_play_link }}" target="_blank" class="btn btn-sm btn-success">
-                                                        <i class="fab fa-google-play"></i>
-                                                    </a>
-                                                @else
-                                                    -
-                                                @endif
+                                                <div class="d-flex gap-1">
+                                                    @if($config->google_play_link_user_app)
+                                                        <a href="{{ $config->google_play_link_user_app }}" target="_blank" class="btn btn-sm btn-success" title="{{ __('messages.google_play') }}">
+                                                            <i class="fab fa-google-play"></i>
+                                                        </a>
+                                                    @endif
+                                                    @if($config->app_store_link_user_app)
+                                                        <a href="{{ $config->app_store_link_user_app }}" target="_blank" class="btn btn-sm btn-primary" title="{{ __('messages.app_store') }}">
+                                                            <i class="fab fa-app-store"></i>
+                                                        </a>
+                                                    @endif
+                                                    @if($config->hawawi_link_user_app)
+                                                        <a href="{{ $config->hawawi_link_user_app }}" target="_blank" class="btn btn-sm btn-info" title="{{ __('messages.hawawi') }}">
+                                                            <i class="fas fa-mobile-alt"></i>
+                                                        </a>
+                                                    @endif
+                                                    @if(!$config->google_play_link_user_app && !$config->app_store_link_user_app && !$config->hawawi_link_user_app)
+                                                        -
+                                                    @endif
+                                                </div>
                                             </td>
                                             <td>
-                                                @if($config->app_store_link)
-                                                    <a href="{{ $config->app_store_link }}" target="_blank" class="btn btn-sm btn-primary">
-                                                        <i class="fab fa-app-store"></i>
-                                                    </a>
-                                                @else
-                                                    -
-                                                @endif
-                                            </td>
-                                            <td>
-                                                @if($config->hawawi_link)
-                                                    <a href="{{ $config->hawawi_link }}" target="_blank" class="btn btn-sm btn-info">
-                                                        <i class="fas fa-mobile-alt"></i>
-                                                    </a>
-                                                @else
-                                                    -
-                                                @endif
+                                                <div class="d-flex gap-1">
+                                                    @if($config->google_play_link_driver_app)
+                                                        <a href="{{ $config->google_play_link_driver_app }}" target="_blank" class="btn btn-sm btn-success" title="{{ __('messages.google_play') }}">
+                                                            <i class="fab fa-google-play"></i>
+                                                        </a>
+                                                    @endif
+                                                    @if($config->app_store_link_driver_app)
+                                                        <a href="{{ $config->app_store_link_driver_app }}" target="_blank" class="btn btn-sm btn-primary" title="{{ __('messages.app_store') }}">
+                                                            <i class="fab fa-app-store"></i>
+                                                        </a>
+                                                    @endif
+                                                    @if($config->hawawi_link_driver_app)
+                                                        <a href="{{ $config->hawawi_link_driver_app }}" target="_blank" class="btn btn-sm btn-info" title="{{ __('messages.hawawi') }}">
+                                                            <i class="fas fa-mobile-alt"></i>
+                                                        </a>
+                                                    @endif
+                                                    @if(!$config->google_play_link_driver_app && !$config->app_store_link_driver_app && !$config->hawawi_link_driver_app)
+                                                        -
+                                                    @endif
+                                                </div>
                                             </td>
                                             <td>{{ $config->created_at->format('Y-m-d H:i') }}</td>
                                             <td>

@@ -486,7 +486,7 @@ return [
     'error_updating_status' => 'Error updating status',
     'error_updating_activate' => 'Error updating activate status',
     'error_bulk_update' => 'Error performing bulk update',
-     'app_configurations' => 'App Configurations',
+ 'app_configurations' => 'App Configurations',
     'add_new_config' => 'Add New Configuration',
     'create_first_config' => 'Create First Configuration',
     'edit_config' => 'Edit Configuration',
@@ -497,11 +497,31 @@ return [
     'id' => 'ID',
     'email' => 'Email',
     'phone' => 'Phone',
-    'google_play_link' => 'Google Play Link',
-    'app_store_link' => 'App Store Link',
-    'hawawi_link' => 'Hawawi Link',
-    'min_version_google_play' => 'Minimum Version (Google Play)',
-    'min_version_app_store' => 'Minimum Version (App Store)',
+    'basic_information' => 'Basic Information',
+    'user_app_configuration' => 'User App Configuration',
+    'driver_app_configuration' => 'Driver App Configuration',
+    'user_app_links' => 'User App Links',
+    'driver_app_links' => 'Driver App Links',
+    
+    // User App Fields
+    'google_play_link_user_app' => 'Google Play Link (User App)',
+    'app_store_link_user_app' => 'App Store Link (User App)',
+    'hawawi_link_user_app' => 'Hawawi Link (User App)',
+    'min_version_google_play_user_app' => 'Minimum Version Google Play (User App)',
+    'min_version_app_store_user_app' => 'Minimum Version App Store (User App)',
+    'min_version_hawawi_user_app' => 'Minimum Version Hawawi (User App)',
+    
+    // Driver App Fields
+    'google_play_link_driver_app' => 'Google Play Link (Driver App)',
+    'app_store_link_driver_app' => 'App Store Link (Driver App)',
+    'hawawi_link_driver_app' => 'Hawawi Link (Driver App)',
+    'min_version_google_play_driver_app' => 'Minimum Version Google Play (Driver App)',
+    'min_version_app_store_driver_app' => 'Minimum Version App Store (Driver App)',
+    'min_version_hawawi_driver_app' => 'Minimum Version Hawawi (Driver App)',
+    
+    'created_at' => 'Created At',
+    'updated_at' => 'Updated At',
+    'version_app_store' => 'Minimum Version (App Store)',
     'min_version_hawawi' => 'Minimum Version (Hawawi)',
     'created_at' => 'Created At',
     'updated_at' => 'Updated At',
@@ -509,10 +529,18 @@ return [
     // Form Placeholders
     'enter_email' => 'Enter email address',
     'enter_phone' => 'Enter phone number',
-    'enter_google_play_link' => 'Enter Google Play store link',
-    'enter_app_store_link' => 'Enter App Store link',
-    'enter_hawawi_link' => 'Enter Hawawi store link',
+    'enter_google_play_link_user_app' => 'Enter Google Play store link for user app',
+    'enter_app_store_link_user_app' => 'Enter App Store link for user app',
+    'enter_hawawi_link_user_app' => 'Enter Hawawi store link for user app',
+    'enter_google_play_link_driver_app' => 'Enter Google Play store link for driver app',
+    'enter_app_store_link_driver_app' => 'Enter App Store link for driver app',
+    'enter_hawawi_link_driver_app' => 'Enter Hawawi store link for driver app',
     'enter_version' => 'Enter version (e.g., 1.0.0)',
+    
+    // Store Names
+    'google_play' => 'Google Play',
+    'app_store' => 'App Store',
+    'hawawi' => 'Hawawi',
     
     // Actions
     'actions' => 'Actions',
