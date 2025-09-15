@@ -530,6 +530,52 @@ return [
     'error_updating_status' => 'خطأ في تحديث الحالة',
     'error_updating_activate' => 'خطأ في تحديث حالة التفعيل',
     'error_bulk_update' => 'خطأ في التحديث المجمع',
+     'app_configurations' => 'إعدادات التطبيق',
+    'add_new_config' => 'إضافة إعداد جديد',
+    'create_first_config' => 'إنشاء أول إعداد',
+    'edit_config' => 'تعديل الإعداد',
+    'view_config' => 'عرض الإعداد',
+    'no_configurations_found' => 'لم يتم العثور على إعدادات.',
+    
+    // Form Fields
+    'id' => 'الرقم التعريفي',
+    'email' => 'البريد الإلكتروني',
+    'phone' => 'رقم الهاتف',
+    'google_play_link' => 'رابط متجر جوجل بلاي',
+    'app_store_link' => 'رابط متجر آب ستور',
+    'hawawi_link' => 'رابط متجر هواوي',
+    'min_version_google_play' => 'الحد الأدنى للإصدار (جوجل بلاي)',
+    'min_version_app_store' => 'الحد الأدنى للإصدار (آب ستور)',
+    'min_version_hawawi' => 'الحد الأدنى للإصدار (هواوي)',
+    'created_at' => 'تاريخ الإنشاء',
+    'updated_at' => 'تاريخ التحديث',
+    
+    // Form Placeholders
+    'enter_email' => 'أدخل عنوان البريد الإلكتروني',
+    'enter_phone' => 'أدخل رقم الهاتف',
+    'enter_google_play_link' => 'أدخل رابط متجر جوجل بلاي',
+    'enter_app_store_link' => 'أدخل رابط متجر آب ستور',
+    'enter_hawawi_link' => 'أدخل رابط متجر هواوي',
+    'enter_version' => 'أدخل رقم الإصدار (مثال: 1.0.0)',
+    
+    // Actions
+    'actions' => 'الإجراءات',
+    'back' => 'رجوع',
+    'save' => 'حفظ',
+    'update' => 'تحديث',
+    'edit' => 'تعديل',
+    'delete' => 'حذف',
+    'cancel' => 'إلغاء',
+    'open_link' => 'فتح الرابط',
+    'not_set' => 'غير محدد',
+    
+    // Success Messages
+    'app_config_created_successfully' => 'تم إنشاء إعداد التطبيق بنجاح!',
+    'app_config_updated_successfully' => 'تم تحديث إعداد التطبيق بنجاح!',
+    'app_config_deleted_successfully' => 'تم حذف إعداد التطبيق بنجاح!',
+    
+    // Confirmation Messages
+    'confirm_delete' => 'هل أنت متأكد من أنك تريد حذف هذا الإعداد؟',
     ""=>"",
     ""=>"",
     ""=>"",

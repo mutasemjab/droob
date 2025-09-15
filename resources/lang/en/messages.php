@@ -486,6 +486,52 @@ return [
     'error_updating_status' => 'Error updating status',
     'error_updating_activate' => 'Error updating activate status',
     'error_bulk_update' => 'Error performing bulk update',
+     'app_configurations' => 'App Configurations',
+    'add_new_config' => 'Add New Configuration',
+    'create_first_config' => 'Create First Configuration',
+    'edit_config' => 'Edit Configuration',
+    'view_config' => 'View Configuration',
+    'no_configurations_found' => 'No configurations found.',
+    
+    // Form Fields
+    'id' => 'ID',
+    'email' => 'Email',
+    'phone' => 'Phone',
+    'google_play_link' => 'Google Play Link',
+    'app_store_link' => 'App Store Link',
+    'hawawi_link' => 'Hawawi Link',
+    'min_version_google_play' => 'Minimum Version (Google Play)',
+    'min_version_app_store' => 'Minimum Version (App Store)',
+    'min_version_hawawi' => 'Minimum Version (Hawawi)',
+    'created_at' => 'Created At',
+    'updated_at' => 'Updated At',
+    
+    // Form Placeholders
+    'enter_email' => 'Enter email address',
+    'enter_phone' => 'Enter phone number',
+    'enter_google_play_link' => 'Enter Google Play store link',
+    'enter_app_store_link' => 'Enter App Store link',
+    'enter_hawawi_link' => 'Enter Hawawi store link',
+    'enter_version' => 'Enter version (e.g., 1.0.0)',
+    
+    // Actions
+    'actions' => 'Actions',
+    'back' => 'Back',
+    'save' => 'Save',
+    'update' => 'Update',
+    'edit' => 'Edit',
+    'delete' => 'Delete',
+    'cancel' => 'Cancel',
+    'open_link' => 'Open Link',
+    'not_set' => 'Not Set',
+    
+    // Success Messages
+    'app_config_created_successfully' => 'App configuration created successfully!',
+    'app_config_updated_successfully' => 'App configuration updated successfully!',
+    'app_config_deleted_successfully' => 'App configuration deleted successfully!',
+    
+    // Confirmation Messages
+    'confirm_delete' => 'Are you sure you want to delete this configuration?',
 
     '' => '',
     '' => '',

@@ -188,6 +188,12 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
+                            <a href="{{ route('app-configs.index') }}" class="nav-link {{ request()->routeIs('app-configs.index') ? 'active' : '' }}">
+                                <i class="fas fa-wrench nav-icon"></i>
+                                <p>{{ __('messages.app_configurations') }}</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a href="{{ route('settings.index') }}" class="nav-link {{ request()->routeIs('settings.index') ? 'active' : '' }}">
                                 <i class="fas fa-wrench nav-icon"></i>
                                 <p>{{ __('messages.general_settings') }}</p>
