@@ -159,6 +159,31 @@
                 </li>
                 @endcanany
 
+                @canany(['banner-table', 'banner-add', 'banner-edit', 'banner-delete'])
+                            <li class="nav-item">
+                                <a href="{{ route('banners.index') }}" class="nav-link {{ request()->routeIs('banners.index') ? 'active' : '' }}">
+                                    <i class="nav-icon fas fa-file-alt"></i>
+                                    <p>{{ __('messages.Banners') }}</p>
+                                </a>
+                            </li>
+                @endcanany
+
+                @canany(['rating-table', 'rating-add', 'rating-edit', 'rating-delete'])
+                            <li class="nav-item">
+                                <a href="{{ route('ratings.index') }}" class="nav-link {{ request()->routeIs('ratings.index') ? 'active' : '' }}">
+                                    <i class="nav-icon fas fa-file-alt"></i>
+                                    <p>{{ __('messages.Ratings') }}</p>
+                                </a>
+                            </li>
+                @endcanany
+                @canany(['complaint-table', 'complaint-add', 'complaint-edit', 'complaint-delete'])
+                            <li class="nav-item">
+                                <a href="{{ route('complaints.index') }}" class="nav-link {{ request()->routeIs('complaints.index') ? 'active' : '' }}">
+                                    <i class="nav-icon fas fa-file-alt"></i>
+                                    <p>{{ __('messages.complaints') }}</p>
+                                </a>
+                            </li>
+                @endcanany
                 @canany(['pos-table', 'pos-add', 'pos-edit', 'pos-delete'])
                             <li class="nav-item">
                                 <a href="{{ route('pos.index') }}" class="nav-link {{ request()->routeIs('pos.index') ? 'active' : '' }}">

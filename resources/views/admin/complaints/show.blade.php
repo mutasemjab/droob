@@ -1,17 +1,14 @@
-@extends('admin.layouts.app')
+@extends('layouts.admin')
 
 @section('content')
 <div class="container-fluid">
     <!-- Page Heading -->
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800">{{ __('messages.View_Complaint') }}</h1>
-        <a href="{{ route('admin.complaints.index') }}" class="btn btn-sm btn-primary shadow-sm">
+        <a href="{{ route('complaints.index') }}" class="btn btn-sm btn-primary shadow-sm">
             <i class="fas fa-arrow-left fa-sm text-white-50"></i> {{ __('messages.Back_to_List') }}
         </a>
     </div>
-
-    <!-- Alert Messages -->
-    @include('admin.common.alert')
 
     <!-- Complaint Details -->
     <div class="card shadow mb-4">
@@ -83,7 +80,7 @@
             <div class="row">
                 <div class="col-md-12">
                     <h5 class="font-weight-bold">{{ __('messages.Update_Status') }}</h5>
-                    <form id="updateStatusForm">
+                   <form action="{{ route('complaints.update-status', $complaint) }}" method="POST">
                         @csrf
                         <div class="form-group">
                             <label for="status">{{ __('messages.Status') }}</label>
@@ -101,31 +98,3 @@
     </div>
 </div>
 @endsection
-
-@push('script')
-<script>
-    $(document).ready(function() {
-        $('#updateStatusForm').on('submit', function(e) {
-            e.preventDefault();
-            
-            $.ajax({
-                url: "{{ route('admin.complaints.update-status', $complaint) }}",
-                method: 'POST',
-                data: {
-                    _token: "{{ csrf_token() }}",
-                    status: $('#status').val()
-                },
-                success: function(response) {
-                    if (response.success) {
-                        toastr.success(response.message);
-                        location.reload();
-                    }
-                },
-                error: function(xhr) {
-                    toastr.error(xhr.responseJSON.error);
-                }
-            });
-        });
-    });
-</script>
-@endpush

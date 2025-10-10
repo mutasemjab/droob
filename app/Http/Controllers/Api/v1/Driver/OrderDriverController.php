@@ -15,7 +15,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use App\Services\EnhancedFCMService;
 use App\Services\OrderPaymentService;
-
+use Illuminate\Support\Facades\Log;
 
 class OrderDriverController extends Controller
 {
@@ -87,7 +87,7 @@ class OrderDriverController extends Controller
         
         // Pagination
         $perPage = $request->per_page ?? 15;
-        $orders = $query->with(['user', 'service','driver'])->paginate($perPage);
+        $orders = $query->with(['user', 'service','driver','coupon'])->paginate($perPage);
         
         // Transform data to include status text and other helper methods
         $orders->getCollection()->transform(function ($order) {
@@ -120,7 +120,7 @@ class OrderDriverController extends Controller
             ->where('driver_id', $driver->id)
             ->with([
                 'user:id,name,phone,country_code,photo,fcm_token','driver.ratings','driver',
-                'service'
+                'service','coupon'
             ])
             ->first();
         

@@ -77,6 +77,12 @@
                     
                     <div class="col-md-6">
                         <!-- Discount Information -->
+
+                        <div class="form-group">
+                            <label for="discount">{{ __('messages.number_of_used') }}</label>
+                            <input type="number" class="form-control" id="number_of_used" name="number_of_used" value="{{ old('number_of_used', $coupon->number_of_used) }}">
+                        </div>
+
                         <div class="form-group">
                             <label for="discount">{{ __('messages.Discount_Value') }} <span class="text-danger">*</span></label>
                             <input type="number" step="0.01" class="form-control" id="discount" name="discount" value="{{ old('discount', $coupon->discount) }}" required min="0">
@@ -89,12 +95,7 @@
                                 <option value="2" {{ old('discount_type', $coupon->discount_type) == 2 ? 'selected' : '' }}>{{ __('messages.Percentage') }}</option>
                             </select>
                         </div>
-                        
-                        <div class="form-group">
-                            <label for="minimum_amount">{{ __('messages.Minimum_Amount') }} <span class="text-danger">*</span></label>
-                            <input type="number" step="0.01" class="form-control" id="minimum_amount" name="minimum_amount" value="{{ old('minimum_amount', $coupon->minimum_amount) }}" required min="0">
-                            <small class="form-text text-muted">{{ __('messages.Minimum_Amount_Info') }}</small>
-                        </div>
+                   
 
                         <div class="row">
                             <div class="col-md-6">

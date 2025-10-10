@@ -37,6 +37,7 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 Route::group(['prefix' => 'v1/user'], function () {
 
     //---------------- Auth --------------------//
+    Route::get('/banners', [BannerController::class, 'index']);
     Route::get('/appConfig', [AppConfigController::class, 'appConfig']);
     Route::get('/getOptions', [OptionController::class, 'getOptions']);
     Route::post('/check-phone', [AuthController::class, 'checkPhone']);
@@ -87,10 +88,6 @@ Route::group(['prefix' => 'v1/user'], function () {
 
         Route::post('/create_order', [OrderController::class, 'createOrder']);
         Route::get('/orders', [OrderController::class, 'index']);
-        Route::get('/orders/active', [OrderController::class, 'activeOrders']);
-        Route::get('/orders/completed', [OrderController::class, 'completedOrders']);
-        Route::get('/orders/cancelled', [OrderController::class, 'cancelledOrders']);
-        Route::post('/orders', [OrderController::class, 'store']);
         Route::get('/orders/{id}', [OrderController::class, 'show']);
         Route::post('/orders/{id}/cancel', [OrderController::class, 'cancelOrder']);
         Route::post('/orders/{id}/delivered', [OrderController::class, 'markAsDelivered']);
@@ -135,13 +132,11 @@ Route::group(['prefix' => 'v1/driver'], function () {
         Route::get('/getServices', [ServiceDriverController::class, 'index']);
         Route::post('/storeOrUpdateStatus', [ServiceDriverController::class, 'storeOrUpdateStatus']);
         Route::get('/wallet/transactions', [WalletDriverController::class, 'getTransactions']);
+        Route::post('/addBalanceToUser', [WalletDriverController::class, 'addBalanceToUser']);
 
         Route::get('/complaints', [ComplaintDriverController::class, 'getTransactions']);
 
         Route::get('/orders', [OrderDriverController::class, 'index']);
-        Route::get('/orders/active', [OrderDriverController::class, 'activeOrders']);
-        Route::get('/orders/completed', [OrderDriverController::class, 'completedOrders']);
-        Route::get('/orders/cancelled', [OrderDriverController::class, 'cancelledOrders']);
         Route::post('/orders/{id}/accept', [OrderDriverController::class, 'acceptOrder']);
         Route::get('/orders/{id}', [OrderDriverController::class, 'show']);
         Route::post('/orders/{id}/cancel', [OrderDriverController::class, 'cancelOrder']);

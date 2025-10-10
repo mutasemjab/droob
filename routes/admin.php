@@ -17,6 +17,9 @@ use App\Http\Controllers\Admin\ServiceController;
 use App\Http\Controllers\Admin\WalletTransactionController;
 use App\Http\Controllers\Admin\WithdrawalRequestController;
 use App\Http\Controllers\Admin\AppConfigController;
+use App\Http\Controllers\Admin\BannerController;
+use App\Http\Controllers\Admin\ComplaintController;
+use App\Http\Controllers\Admin\RatingController;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 use Spatie\Permission\Models\Permission;
 /*
@@ -81,6 +84,9 @@ Route::prefix('pages')->group(function () {
 
 
 // Resource Route
+Route::resource('banners', BannerController::class);
+Route::resource('ratings', RatingController::class);
+Route::resource('complaints', ComplaintController::class);
 Route::resource('app-configs', AppConfigController::class);
 Route::resource('settings', SettingController::class);
 Route::resource('users', UserController::class);
@@ -119,7 +125,8 @@ Route::post('/reject/{id}', [WithdrawalRequestController::class, 'reject'])->nam
 // functionloty routes
 Route::post('drivers/topUp/{id}', [DriverController::class, 'topUp'])->name('drivers.topUp');
 Route::get('drivers/transactions/{id}', [DriverController::class, 'transactions'])->name('drivers.transactions');
-
+Route::post('/complaints/{complaint}/update-status', [ComplaintController::class, 'updateStatus'])
+    ->name('complaints.update-status');
 
 });
 });
