@@ -3,23 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Droob - Your Ride, Your Way</title>
+    <title>Taksi K - Your Ride, Your Way</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="{{ asset('assets_front/css/styles.css') }}">
+    <link rel="stylesheet" href="<?php echo e(asset('assets_front/css/styles.css')); ?>">
 
 </head>
 <body>
  
-@include('user.includes.header')
+<?php echo $__env->make('user.includes.header', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
  
-@include('user.includes.content')
+<?php echo $__env->make('user.includes.content', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
     
 <!-- Back to top button -->
 <button class="back-to-top" onclick="scrollToTop()">
     <i class="fas fa-arrow-up"></i>
 </button>
 
-@include('user.includes.footer')
+<?php echo $__env->make('user.includes.footer', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
 <script>
 // Back to top functionality
 window.addEventListener('scroll', function() {
@@ -128,4 +128,4 @@ function scrollToTop() {
     </script>
 </body>
 </html>
-                          
+                          <?php /**PATH C:\xampp\htdocs\droob\resources\views/layouts/user.blade.php ENDPATH**/ ?>
