@@ -1,6 +1,6 @@
   <header>
         <nav class="container">
-            <div class="logo">Taksi K</div>
+            <div class="logo">Droob</div>
             <ul class="nav-links">
                 <li><a href="#home"><?php echo e(__('front.home')); ?></a></li>
                 <li><a href="#features"><?php echo e(__('front.features')); ?></a></li>

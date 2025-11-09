@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers\Api\v1\User;
 
+use App\Http\Controllers\Api\v1\Driver\AlertDriverController;
 use App\Http\Controllers\Api\v1\Driver\ComplaintDriverController;
 use App\Http\Controllers\Api\v1\Driver\OrderDriverController;
 use App\Http\Controllers\Api\v1\Driver\RatingDriverController;
 use App\Http\Controllers\Api\v1\Driver\ServiceDriverController;
 use App\Http\Controllers\Api\v1\Driver\HomeDriverController;
+use App\Http\Controllers\Api\v1\Driver\HotSpotsController;
 use App\Http\Controllers\Api\v1\Driver\WalletDriverController;
 use App\Http\Controllers\Api\v1\Driver\WithdrawalRequestDriverController;
 use Illuminate\Http\Request;
@@ -42,6 +44,11 @@ Route::group(['prefix' => 'v1/user'], function () {
     Route::get('/getOptions', [OptionController::class, 'getOptions']);
     Route::post('/check-phone', [AuthController::class, 'checkPhone']);
     Route::post('/register', [AuthController::class, 'register']);
+
+
+    Route::post('/sendOtp', [AuthController::class, 'sendOtp']);
+    Route::post('/verifyOtp', [AuthController::class, 'verifyOtp']);
+    Route::post('/resendOtp', [AuthController::class, 'resendOtp']);
 
     Route::get('/settings', [SettingController::class, 'index']);
     Route::post('/services', [ServicesController::class, 'index']);
@@ -109,6 +116,7 @@ Route::group(['prefix' => 'v1/driver'], function () {
     // Auth Route
     Route::group(['middleware' => ['auth:driver-api', 'check.driver.activation']], function () {
 
+        Route::get('/hotSpots', [HotSpotsController::class, 'index']);
         Route::get('/getStatusOfDriver', [AuthController::class, 'getStatusOfDriver']);
         Route::get('/active', [AuthController::class, 'active']);
         Route::post('/updateStatus', [AuthController::class, 'updateStatusOnOff']);
@@ -141,5 +149,8 @@ Route::group(['prefix' => 'v1/driver'], function () {
         Route::get('/orders/{id}', [OrderDriverController::class, 'show']);
         Route::post('/orders/{id}/cancel', [OrderDriverController::class, 'cancelOrder']);
         Route::post('/orders/{id}/status', [OrderDriverController::class, 'updateStatus']);
+
+        Route::get('/driverAlerts', [AlertDriverController::class, 'index']); // List alerts
+        Route::post('/driverAlerts', [AlertDriverController::class, 'store']); // Create alert
     });
 });

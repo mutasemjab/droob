@@ -11,14 +11,23 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Controllers\Admin\FCMController; // <-- Import the FCMController here
 use App\Models\ParentStudent;
+use App\Services\OTPService;
 use App\Traits\Responses;
 use Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 
 class AuthController extends Controller
 {
     use Responses;
+
+    protected $otpService;
+
+    public function __construct(OTPService $otpService)
+    {
+        $this->otpService = $otpService;
+    }
 
 
     public function updateStatusOnOff()
@@ -139,11 +148,11 @@ class AuthController extends Controller
         }
     }
 
-    public function checkPhone(Request $request)
+   public function checkPhone(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'phone' => 'required|string',
-            'country_code' => 'required|string', // Added country_code validation
+            'country_code' => 'required|string',
             'fcm_token' => 'nullable|string',
             'user_type' => 'nullable|in:user,driver'
         ]);
@@ -153,26 +162,21 @@ class AuthController extends Controller
         }
 
         $phone = $request->phone;
-        $countryCode = $request->country_code; // Get country_code from request
+        $countryCode = $request->country_code;
         $userType = $request->user_type ?? 'user';
 
-        // Determine which model to check based on user_type
-        $model = ($userType == 'driver') ? 'App\Models\Driver' : 'App\Models\User';
+        $model = ($userType == 'driver') ? \App\Models\Driver::class : \App\Models\User::class;
 
-        // Check both phone and country_code
         $user = $model::where('phone', $phone)
-            ->where('country_code', $countryCode)
-            ->first();
+                    ->where('country_code', $countryCode)
+                    ->first();
 
         if ($user) {
-
-            // Update FCM token if provided
             if ($request->has('fcm_token')) {
                 $user->fcm_token = $request->fcm_token;
                 $user->save();
             }
 
-            // Create access token
             $accessToken = $user->createToken('authToken')->accessToken;
 
             return $this->success_response('Success', [
@@ -184,54 +188,43 @@ class AuthController extends Controller
             ]);
         }
 
-        // User doesn't exist
-        return $this->success_response('Phone number not registered. OTP sent for registration', [
+        return $this->success_response('Phone number not registered', [
             'user_exists' => false,
             'user_type' => $userType,
-            'country_code' => $countryCode, // Also return country_code in response
+            'country_code' => $countryCode,
         ]);
     }
+
 
     public function register(Request $request)
     {
         $userType = $request->user_type ?? 'user';
 
-        // Different validation rules based on user type
-        if ($userType == 'driver') {
-            $validator = Validator::make($request->all(), [
-                'name' => 'required|string|max:255',
-                'country_code' => 'required',
-                'phone' => 'required|string|unique:drivers',
-                'email' => 'nullable|email|unique:drivers',
-                'fcm_token' => 'nullable|string',
-                'sos_phone' => 'nullable|string',
-                'option_ids' => 'required|array', // Changed to array
-                'option_ids.*' => 'required|exists:options,id', // Validate each option ID
-                'photo' => 'nullable|image|mimes:jpeg,png,jpg',
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'country_code' => 'required',
+            'phone' => 'required|string|unique:' . ($userType === 'driver' ? 'drivers' : 'users'),
+            'email' => 'nullable|email|unique:' . ($userType === 'driver' ? 'drivers' : 'users'),
+            'fcm_token' => 'nullable|string',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg',
+        ]);
 
-                // Car details
-                'passenger_number' => 'nullable',
+        if ($userType === 'driver') {
+            $validator->addRules([
+                'sos_phone' => 'nullable|string',
+                'option_ids' => 'required|array',
+                'option_ids.*' => 'required|exists:options,id',
                 'photo_of_car' => 'nullable|image|mimes:jpeg,png,jpg',
+                'passenger_number' => 'nullable',
                 'model' => 'nullable|string|max:255',
                 'production_year' => 'nullable|string|max:4',
                 'color' => 'nullable|string|max:255',
                 'plate_number' => 'nullable|string|max:255',
-
-                // Documents
                 'driving_license_front' => 'nullable|image|mimes:jpeg,png,jpg',
                 'driving_license_back' => 'nullable|image|mimes:jpeg,png,jpg',
                 'car_license_front' => 'nullable|image|mimes:jpeg,png,jpg',
                 'car_license_back' => 'nullable|image|mimes:jpeg,png,jpg',
                 'no_criminal_record' => 'nullable|image|mimes:jpeg,png,jpg',
-            ]);
-        } else {
-            $validator = Validator::make($request->all(), [
-                'name' => 'required|string|max:255',
-                'country_code' => 'required',
-                'phone' => 'required|string|unique:users',
-                'email' => 'nullable|email|unique:users',
-                'fcm_token' => 'nullable|string',
-                'photo' => 'nullable|image|mimes:jpeg,png,jpg',
             ]);
         }
 
@@ -239,83 +232,170 @@ class AuthController extends Controller
             return $this->error_response('Validation error', $validator->errors());
         }
 
-        // Prepare data for user creation
-        $userData = [
-            'name' => $request->name,
-            'country_code' => $request->country_code,
-            'phone' => $request->phone,
-            'email' => $request->email,
-            'fcm_token' => $request->fcm_token,
-            'balance' => 0,  // Default balance
-        ];
+        try {
+            DB::beginTransaction();
 
-        // Add photo if uploaded
-        if ($request->hasFile('photo')) {
-            $userData['photo'] = uploadImage('assets/admin/uploads', $request->file('photo'));
-        }
+            $userData = $request->only(['name', 'country_code', 'phone', 'email', 'fcm_token']);
+            $userData['balance'] = 0;
 
-        // Create user with the data
-        if ($userType == 'driver') {
-            // Add driver-specific fields
-            $userData['sos_phone'] = $request->sos_phone;
-            $userData['activate'] = 3; // waiting approve from admin
-
-            // Handle car image uploads
-            if ($request->hasFile('photo_of_car')) {
-                $userData['photo_of_car'] = uploadImage('assets/admin/uploads', $request->file('photo_of_car'));
+            if ($request->hasFile('photo')) {
+                $userData['photo'] = uploadImage('assets/admin/uploads', $request->file('photo'));
             }
 
-            // Add car details
-            $userData['passenger_number'] = $request->passenger_number;
-            $userData['model'] = $request->model;
-            $userData['production_year'] = $request->production_year;
-            $userData['color'] = $request->color;
-            $userData['plate_number'] = $request->plate_number;
+            $welcomeBonus = 0;
+            $welcomeBonusApplied = false;
 
-            // Handle document uploads
-            if ($request->hasFile('driving_license_front')) {
-                $userData['driving_license_front'] = uploadImage('assets/admin/uploads', $request->file('driving_license_front'));
-            }
+            if ($userType === 'driver') {
+                // Get welcome bonus for new driver
+                $welcomeBonus = $this->getSettingValue('new_driver_register_add_balance', 0);
+                
+                $userData['sos_phone'] = $request->sos_phone;
+                $userData['activate'] = 3;
+                $userData['balance'] = $welcomeBonus; // Set initial balance
+                
+                if ($request->hasFile('photo_of_car')) {
+                    $userData['photo_of_car'] = uploadImage('assets/admin/uploads', $request->file('photo_of_car'));
+                }
+                
+                $userData = array_merge($userData, $request->only(['passenger_number', 'model', 'production_year', 'color', 'plate_number']));
+                $user = \App\Models\Driver::create($userData);
 
-            if ($request->hasFile('driving_license_back')) {
-                $userData['driving_license_back'] = uploadImage('assets/admin/uploads', $request->file('driving_license_back'));
-            }
+                if ($request->has('option_ids') && is_array($request->option_ids)) {
+                    $user->options()->attach($request->option_ids);
+                }
 
-            if ($request->hasFile('car_license_front')) {
-                $userData['car_license_front'] = uploadImage('assets/admin/uploads', $request->file('car_license_front'));
-            }
+                // Create wallet transaction if welcome bonus > 0
+                if ($welcomeBonus > 0) {
+                    DB::table('wallet_transactions')->insert([
+                        'driver_id' => $user->id,
+                        'amount' => $welcomeBonus,
+                        'type_of_transaction' => 1, // addition
+                        'note' => 'Welcome bonus for new driver registration',
+                        'created_at' => now(),
+                        'updated_at' => now()
+                    ]);
+                    $welcomeBonusApplied = true;
 
-            if ($request->hasFile('car_license_back')) {
-                $userData['car_license_back'] = uploadImage('assets/admin/uploads', $request->file('car_license_back'));
-            }
+                }
+            } else {
+                // Get welcome bonus for new user
+                $welcomeBonus = $this->getSettingValue('new_user_register_add_balance', 0);
+                
+                $userData['referral_code'] = $this->generateReferralCode();
+                $userData['balance'] = $welcomeBonus; // Set initial balance
+                
+                $user = \App\Models\User::create($userData);
 
-            if ($request->hasFile('no_criminal_record')) {
-                $userData['no_criminal_record'] = uploadImage('assets/admin/uploads', $request->file('no_criminal_record'));
-            }
+                // Create wallet transaction if welcome bonus > 0
+                if ($welcomeBonus > 0) {
+                    DB::table('wallet_transactions')->insert([
+                        'user_id' => $user->id,
+                        'amount' => $welcomeBonus,
+                        'type_of_transaction' => 1, // addition
+                        'note' => 'Welcome bonus for new user registration',
+                        'created_at' => now(),
+                        'updated_at' => now()
+                    ]);
+                    $welcomeBonusApplied = true;
 
-            // Create driver
-            $user = \App\Models\Driver::create($userData);
-
-            // Attach options to the driver
-            if ($request->has('option_ids') && is_array($request->option_ids)) {
-                foreach ($request->option_ids as $optionId) {
-                    $user->options()->attach($optionId);
                 }
             }
-        } else {
-            $userData['referral_code'] = $this->generateReferralCode();
-            $user = User::create($userData);
+
+            DB::commit();
+
+            $accessToken = $user->createToken('authToken')->accessToken;
+
+            $responseData = [
+                'token' => $accessToken,
+                'user' => $user,
+                'new_user' => true,
+            ];
+
+            // Add welcome bonus info to response if applied
+            if ($welcomeBonusApplied) {
+                $responseData['welcome_bonus'] = [
+                    'amount' => $welcomeBonus,
+                    'message' => $userType === 'driver' 
+                        ? "Welcome! You've received {$welcomeBonus} JD as a welcome bonus." 
+                        : "Welcome! You've received {$welcomeBonus} JD as a welcome bonus.",
+                    'current_balance' => $user->balance
+                ];
+            }
+
+            return $this->success_response('Registration successful', $responseData);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->error_response('Registration failed', $e->getMessage());
+        }
+    }
+
+    /**
+     * Get setting value by key with default fallback
+     */
+    private function getSettingValue($key, $default = 0)
+    {
+        $setting = DB::table('settings')->where('key', $key)->first();
+        return $setting ? $setting->value : $default;
+    }
+
+    public function sendOtp(Request $request)
+    {
+        $request->validate([
+            'phone' => 'required|string',
+            'country_code' => 'required|string',
+        ]);
+
+        $fullPhone = $request->country_code . $request->phone;
+        $otpResult = $this->otpService->sendOTP($fullPhone);
+
+        if ($otpResult['success']) {
+            return $this->success_response('OTP sent successfully', [
+                'debug_otp' => $otpResult['otp'] ?? null,
+            ]);
         }
 
-        // Generate access token
-        $accessToken = $user->createToken('authToken')->accessToken;
-
-        return $this->success_response('Registration successful', [
-            'token' => $accessToken,
-            'user' => $user,
-            'new_user' => true
-        ]);
+        return $this->error_response($otpResult['message'], $otpResult['error'] ?? null);
     }
+
+    public function verifyOtp(Request $request)
+    {
+        $request->validate([
+            'phone' => 'required|string',
+            'country_code' => 'required|string',
+            'otp' => 'required|string',
+        ]);
+
+        $fullPhone = $request->country_code . $request->phone;
+        $otpResult = $this->otpService->verifyOTPWithTestCase($fullPhone, $request->otp);
+
+        if ($otpResult['success']) {
+            return $this->success_response('OTP verified successfully',[]);
+        }
+
+        return $this->error_response($otpResult['message'], $otpResult['error_code'] ?? null);
+    }
+
+    public function resendOtp(Request $request)
+    {
+        $request->validate([
+            'phone' => 'required|string',
+            'country_code' => 'required|string',
+        ]);
+
+        $fullPhone = $request->country_code . $request->phone;
+        $otpResult = $this->otpService->sendOTP($fullPhone);
+
+        if ($otpResult['success']) {
+            return $this->success_response('OTP resent successfully', [
+                'debug_otp' => $otpResult['otp'] ?? null,
+            ]);
+        }
+
+        return $this->error_response($otpResult['message'], $otpResult['error'] ?? null);
+    }
+
+
 
     public function userProfile()
     {
