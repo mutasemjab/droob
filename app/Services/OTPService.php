@@ -14,7 +14,7 @@ class OTPService
     public function __construct()
     {
         $this->smsConfig = [
-            'sender_id' => config('sms.sender_id', 'HabibaStore'),
+            'sender_id' => config('sms.sender_id', 'Droob Jo'),
             'account_name' => config('sms.account_name'),
             'account_password' => config('sms.account_password'),
             'base_url' => config('sms.base_url', 'https://www.josms.net/SMSServices/Clients/Prof/RestSingleSMS/SendSMS'),

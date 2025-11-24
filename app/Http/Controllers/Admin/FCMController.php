@@ -23,7 +23,7 @@ class FCMController extends BaseController
             return false;
         }
 
-        $credentialsFilePath = base_path("json/droob-taxi-b5e033e2327c.json");
+        $credentialsFilePath = base_path('json/droob-taxi-b5e033e2327c.json');
 
         try {
             $client = new GoogleClient();
