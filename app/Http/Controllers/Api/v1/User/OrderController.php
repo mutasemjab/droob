@@ -23,7 +23,7 @@ use App\Enums\PaymentMethod;
 use App\Enums\StatusPayment;
 use Illuminate\Validation\Rule;
 use App\Services\OrderPaymentService;
-
+use Illuminate\Support\Facades\Http;
 
 class OrderController extends Controller
 {
@@ -193,7 +193,8 @@ class OrderController extends Controller
 
                 // Only calculate distance if both end_lat and end_lng are present
                 if (!is_null($request->end_lat) && !is_null($request->end_lng)) {
-                    $distance = $this->calculateDistance(
+                    // استخدام OSRM بدلاً من Haversine
+                    $distance = $this->calculateDistanceOSRM(
                         $request->start_lat,
                         $request->start_lng,
                         $request->end_lat,
@@ -300,21 +301,51 @@ class OrderController extends Controller
                 $couponId = $coupon->id;
             }
 
-            // Check wallet balance for wallet payment method
+            // ========== تحقق من رصيد المحفظة حسب نظام التوزيع ==========
             if ($paymentMethodValue === PaymentMethod::Wallet->value) {
                 $user = auth()->user();
 
-                if ($user->balance < $finalPrice) {
-                    return response()->json([
-                        'status' => false,
-                        'type' => 'insufficient_balance',
-                        'message' => 'لا يوجد معك رصيد كافي في المحفظة',
-                        'data' => [
-                            'required_amount' => $finalPrice,
-                            'current_balance' => $user->balance,
-                            'shortage' => $finalPrice - $user->balance
-                        ]
-                    ], 200);
+                // التحقق من تفعيل نظام التوزيع
+                $distributionEnabled = DB::table('settings')
+                    ->where('key', 'enable_wallet_distribution_system')
+                    ->value('value') == 1;
+
+                // تحديد المبلغ المطلوب للتحقق
+                if ($distributionEnabled && $user->wallet_orders_remaining > 0 && $user->wallet_amount_per_order > 0) {
+                    // نظام التوزيع مفعل - نتحقق من المبلغ المخصص لكل رحلة
+                    $requiredAmount = min($user->wallet_amount_per_order, $finalPrice);
+
+                    if ($user->balance < $requiredAmount) {
+                        return response()->json([
+                            'status' => false,
+                            'type' => 'insufficient_balance',
+                            'message' => 'لا يوجد معك رصيد كافي في المحفظة',
+                            'data' => [
+                                'distribution_system_active' => true,
+                                'amount_per_order' => $user->wallet_amount_per_order,
+                                'orders_remaining' => $user->wallet_orders_remaining,
+                                'required_amount' => $requiredAmount,
+                                'current_balance' => $user->balance,
+                                'shortage' => $requiredAmount - $user->balance,
+                                'note' => 'نظام توزيع المحفظة مفعّل - يتم خصم ' . $user->wallet_amount_per_order . ' JD لكل رحلة'
+                            ]
+                        ], 200);
+                    }
+                } else {
+                    // نظام التوزيع معطل - نتحقق من كامل المبلغ
+                    if ($user->balance < $finalPrice) {
+                        return response()->json([
+                            'status' => false,
+                            'type' => 'insufficient_balance',
+                            'message' => 'لا يوجد معك رصيد كافي في المحفظة',
+                            'data' => [
+                                'distribution_system_active' => false,
+                                'required_amount' => $finalPrice,
+                                'current_balance' => $user->balance,
+                                'shortage' => $finalPrice - $user->balance
+                            ]
+                        ], 200);
+                    }
                 }
             }
 
@@ -438,7 +469,7 @@ class OrderController extends Controller
         return $hour >= 22 || $hour < 6;
     }
 
-    private function calculateDistance($lat1, $lng1, $lat2, $lng2)
+    private function calculateDistanceFallback($lat1, $lng1, $lat2, $lng2)
     {
         $earthRadius = 6371; // Radius in kilometers
 
@@ -456,6 +487,36 @@ class OrderController extends Controller
         return $earthRadius * $angle;
     }
 
+    private function calculateDistanceOSRM($lat1, $lng1, $lat2, $lng2)
+    {
+        try {
+            // OSRM format: longitude,latitude (reversed!)
+            $url = "https://router.project-osrm.org/route/v1/driving/"
+                . "{$lng1},{$lat1};"
+                . "{$lng2},{$lat2}"
+                . "?overview=false&alternatives=false&steps=false";
+
+            $response = Http::timeout(5)->get($url);
+
+            if ($response->successful()) {
+                $data = $response->json();
+
+                if ($data['code'] === 'Ok' && isset($data['routes'][0]['distance'])) {
+                    // Distance is in meters, convert to kilometers
+                    $distanceInMeters = $data['routes'][0]['distance'];
+                    return $distanceInMeters / 1000;
+                }
+            }
+
+            // If OSRM fails, fallback to Haversine
+            \Log::warning("OSRM failed for order distance calculation, using fallback");
+            return $this->calculateDistanceFallback($lat1, $lng1, $lat2, $lng2);
+        } catch (\Exception $e) {
+            // On exception, fallback to Haversine
+            \Log::warning("OSRM exception in order: " . $e->getMessage() . ", using fallback");
+            return $this->calculateDistanceFallback($lat1, $lng1, $lat2, $lng2);
+        }
+    }
     /**
      * Display a listing of the user's orders
      *
@@ -758,6 +819,7 @@ class OrderController extends Controller
     private function moveOrderToSpamTable($order, $reasonForCancel)
     {
         $spamOrder = OrderSpam::create([
+            'original_order_id' => $order->id, 
             'number' => $order->number,
             'status' => OrderStatus::UserCancelOrder->value,
             'payment_method' => $order->payment_method->value,
@@ -797,7 +859,7 @@ class OrderController extends Controller
         }
 
         // Calculate distance using existing method
-        $distance = $this->calculateDistance($lat1, $lng1, $lat2, $lng2);
+        $distance = $this->calculateDistanceFallback($lat1, $lng1, $lat2, $lng2);
 
         // Average speed in km/h (you can adjust this based on your city/service type)
         $averageSpeed = 30; // 30 km/h for city driving
@@ -833,6 +895,4 @@ class OrderController extends Controller
             return "{$remainingMinutes} minute" . ($remainingMinutes > 1 ? 's' : '');
         }
     }
-
-  
 }

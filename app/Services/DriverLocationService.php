@@ -325,11 +325,9 @@ class DriverLocationService
 
                 // Check if there are more pages
                 $nextPageToken = $firestoreData['nextPageToken'] ?? null;
-
             } while ($nextPageToken); // Continue if there's a next page
 
             \Log::info("Fetched " . count($driversWithLocations) . " drivers with valid locations from Firestore");
-
         } catch (\Exception $e) {
             \Log::error('Error fetching from Firestore: ' . $e->getMessage());
         }
@@ -416,26 +414,66 @@ class DriverLocationService
     /**
      * Sort drivers by distance from user location
      */
+    /**
+     * Sort drivers by distance from user location
+     * Uses Haversine for initial filtering, then OSRM for precise calculation
+     */
     private function sortDriversByDistance(array $drivers, $userLat, $userLng, $maxRadius)
     {
         $driversWithDistance = [];
 
+        // Step 1: Filter using fast Haversine calculation
+        $candidateDrivers = [];
         foreach ($drivers as $driver) {
-            $distance = $this->calculateDistance(
+            $roughDistance = $this->calculateDistanceFallback(
                 $userLat,
                 $userLng,
                 $driver['lat'],
                 $driver['lng']
             );
 
-            // Only include drivers within the specified radius
-            if ($distance <= $maxRadius) {
-                $driver['distance'] = round($distance, 2);
+            // Only keep drivers within radius + 20% buffer (to account for road vs straight line)
+            if ($roughDistance <= ($maxRadius * 1.2)) {
+                $driver['rough_distance'] = $roughDistance;
+                $candidateDrivers[] = $driver;
+            }
+        }
+
+        \Log::info("Filtered to " . count($candidateDrivers) . " candidate drivers using Haversine");
+
+        // If no candidates after Haversine filtering
+        if (empty($candidateDrivers)) {
+            return [];
+        }
+
+        // Step 2: Sort candidates by rough distance (closest first)
+        usort($candidateDrivers, function ($a, $b) {
+            return $a['rough_distance'] <=> $b['rough_distance'];
+        });
+
+        // Step 3: Use OSRM only for top N closest drivers (e.g., 50 drivers)
+        $maxDriversForOSRM = 20; // يمكنك تعديل هذا الرقم
+        $topDrivers = array_slice($candidateDrivers, 0, $maxDriversForOSRM);
+
+        foreach ($topDrivers as $driver) {
+            // Use OSRM for precise distance
+            $preciseDistance = $this->calculateDistanceOSRM(
+                $userLat,
+                $userLng,
+                $driver['lat'],
+                $driver['lng']
+            );
+
+            // Only include drivers within the actual specified radius
+            if ($preciseDistance <= $maxRadius) {
+                $driver['distance'] = round($preciseDistance, 2);
                 $driversWithDistance[] = $driver;
             }
         }
 
-        // Sort by distance (nearest first)
+        \Log::info("Calculated OSRM distance for " . count($topDrivers) . " drivers, " . count($driversWithDistance) . " within radius");
+
+        // Sort by precise distance (nearest first)
         usort($driversWithDistance, function ($a, $b) {
             return $a['distance'] <=> $b['distance'];
         });
@@ -444,10 +482,46 @@ class DriverLocationService
     }
 
     /**
-     * Calculate distance between two coordinates using Haversine formula
+     * Calculate distance using OSRM (actual road distance)
+     * Returns distance in kilometers
+     * Falls back to Haversine formula if OSRM fails
+     */
+    private function calculateDistanceOSRM($lat1, $lng1, $lat2, $lng2)
+    {
+        try {
+            // OSRM format: longitude,latitude (reversed!)
+            $url = "https://router.project-osrm.org/route/v1/driving/"
+                . "{$lng1},{$lat1};"
+                . "{$lng2},{$lat2}"
+                . "?overview=false&alternatives=false&steps=false";
+
+            $response = Http::timeout(5)->get($url);
+
+            if ($response->successful()) {
+                $data = $response->json();
+
+                if ($data['code'] === 'Ok' && isset($data['routes'][0]['distance'])) {
+                    // Distance is in meters, convert to kilometers
+                    $distanceInMeters = $data['routes'][0]['distance'];
+                    return $distanceInMeters / 1000;
+                }
+            }
+
+            // If OSRM fails, fallback to Haversine
+            \Log::warning("OSRM failed for coordinates ({$lat1}, {$lng1}) to ({$lat2}, {$lng2}), using fallback");
+            return $this->calculateDistanceFallback($lat1, $lng1, $lat2, $lng2);
+        } catch (\Exception $e) {
+            // On exception, fallback to Haversine
+            \Log::warning("OSRM exception: " . $e->getMessage() . ", using fallback");
+            return $this->calculateDistanceFallback($lat1, $lng1, $lat2, $lng2);
+        }
+    }
+
+    /**
+     * Fallback: Calculate distance using Haversine formula (straight line)
      * Returns distance in kilometers
      */
-    private function calculateDistance($lat1, $lng1, $lat2, $lng2)
+    private function calculateDistanceFallback($lat1, $lng1, $lat2, $lng2)
     {
         $earthRadius = 6371; // Earth's radius in kilometers
 
