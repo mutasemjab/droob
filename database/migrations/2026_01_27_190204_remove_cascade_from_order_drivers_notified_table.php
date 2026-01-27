@@ -14,16 +14,9 @@ return new class extends Migration
     public function up()
     {
         Schema::table('order_drivers_notified', function (Blueprint $table) {
-            // Drop the existing foreign key constraint with cascade delete
+            // ✅ Simply drop the foreign key constraint
+            // This preserves order_id values even after order deletion
             $table->dropForeign(['order_id']);
-            
-            // Re-add the foreign key constraint WITHOUT cascade delete
-            // Using 'restrict' prevents order deletion if notification records exist
-            // Using 'no action' allows the order to exist independently
-            $table->foreign('order_id')
-                ->references('id')
-                ->on('orders')
-                ->onDelete('no action'); // Keeps notification history when order is deleted
         });
     }
 
@@ -35,10 +28,7 @@ return new class extends Migration
     public function down()
     {
         Schema::table('order_drivers_notified', function (Blueprint $table) {
-            // Drop the modified foreign key
-            $table->dropForeign(['order_id']);
-            
-            // Restore the original cascade delete behavior
+            // Restore original foreign key with cascade
             $table->foreign('order_id')
                 ->references('id')
                 ->on('orders')
