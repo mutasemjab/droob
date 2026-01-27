@@ -47,7 +47,7 @@ class OrderController extends Controller
             $radius = $request->radius;
 
             $order = Order::find($orderId);
-            
+
             // ✅ Strict validation before proceeding
             if (!$order) {
                 \Log::warning("updateOrderRadius: Order {$orderId} not found");
@@ -83,7 +83,6 @@ class OrderController extends Controller
                 'result' => $result,
                 'drivers_found' => $result['drivers_found'] ?? 0
             ]);
-            
         } catch (\Exception $e) {
             \Log::error("Error in updateOrderRadius for order {$orderId}: " . $e->getMessage());
             return response()->json(['success' => false, 'error' => $e->getMessage()]);
@@ -738,7 +737,6 @@ class OrderController extends Controller
             $isPendingOrder = $order->status === OrderStatus::Pending;
             $isDriverAccepted = $order->status === OrderStatus::DriverAccepted;
 
-            // Check if cancellation fee should be applied
             $cancellationFeeApplied = false;
             $cancellationFeeAmount = 0;
 
@@ -751,22 +749,21 @@ class OrderController extends Controller
                 }
             }
 
+            // ✅ Update status FIRST (stops all jobs)
+            $order->status = OrderStatus::UserCancelOrder;
+            $order->reason_for_cancel = $request->reason_for_cancel;
+            $order->save();
+
+            // ✅ Remove from Firebase
+            $this->removeOrderFromFirebase($id);
+
             if ($isPendingOrder) {
-                // ✅ CRITICAL: Update order status BEFORE moving to spam
-                // This will stop any running jobs from processing this order
-                $order->status = OrderStatus::UserCancelOrder;
-                $order->reason_for_cancel = $request->reason_for_cancel;
-                $order->save();
-
-                // ✅ Wait a moment for any running jobs to check status
-                sleep(1);
-
-                // Move pending order to spam_orders table
+                // ✅ Move to spam table (creates backup)
                 $spamOrder = $this->moveOrderToSpamTable($order, $request->reason_for_cancel);
-                $order->delete();
 
-                // ✅ Remove from Firebase immediately
-                $this->removeOrderFromFirebase($id);
+                // ✅ CRITICAL: Keep notification records, delete the order
+                // Since we removed cascade, notification records will remain
+                $order->delete();
 
                 $responseData = [
                     'order_id' => $id,
@@ -779,18 +776,12 @@ class OrderController extends Controller
                     'cancellation_fee_amount' => 0
                 ];
             } else {
-                // For non-pending orders, just update status
-                $order->status = OrderStatus::UserCancelOrder;
-                $order->reason_for_cancel = $request->reason_for_cancel;
-                $order->save();
+                // For non-pending orders, just update status (don't delete)
 
                 // Notify driver about cancellation
                 if ($order->driver_id) {
                     EnhancedFCMService::sendOrderStatusToDriver($id, OrderStatus::UserCancelOrder);
                 }
-
-                // ✅ Remove from Firebase
-                $this->removeOrderFromFirebase($id);
 
                 $responseData = [
                     'order_id' => $order->id,
@@ -824,9 +815,9 @@ class OrderController extends Controller
         try {
             $projectId = config('firebase.project_id');
             $baseUrl = "https://firestore.googleapis.com/v1/projects/{$projectId}/databases/(default)/documents";
-            
+
             $response = Http::timeout(5)->delete("{$baseUrl}/ride_requests/{$orderId}");
-            
+
             if ($response->successful()) {
                 \Log::info("Order {$orderId} removed from Firebase");
             } else {

@@ -312,17 +312,6 @@ class DriverLocationService
         return $driversWithDistance;
     }
 
-    /**
-     * Get the next radius zone
-     */
-    private function getNextRadius($currentRadius, $radiusZones, $maximumRadius)
-    {
-        $currentIndex = array_search($currentRadius, $radiusZones);
-        if ($currentIndex !== false && $currentIndex < count($radiusZones) - 1) {
-            return $radiusZones[$currentIndex + 1];
-        }
-        return null;
-    }
 
     /**
      * Get available drivers from MySQL filtered by service
