@@ -2,14 +2,14 @@
 
 namespace App\Jobs;
 
+use App\Models\Driver;
+use App\Models\Order;
+use App\Enums\OrderStatus;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use App\Models\Order;
-use App\Models\Driver;
-use App\Enums\OrderStatus;
 
 class SearchDriversInNextZone implements ShouldQueue
 {
@@ -21,6 +21,9 @@ class SearchDriversInNextZone implements ShouldQueue
     protected $userLat;
     protected $userLng;
 
+    public $tries = 1; // ✅ Only try once
+    public $timeout = 30; // ✅ Max 30 seconds
+
     public function __construct($orderId, $currentRadius, $serviceId, $userLat, $userLng)
     {
         $this->orderId = $orderId;
@@ -29,16 +32,29 @@ class SearchDriversInNextZone implements ShouldQueue
         $this->userLat = $userLat;
         $this->userLng = $userLng;
         
-        $this->delay(now()->addSeconds(30));
+        // ✅ DON'T set delay here - it's set when dispatching
     }
 
     public function handle()
     {
         try {
+            // ✅ CRITICAL: Check order status at the very start
             $order = Order::find($this->orderId);
             
-            if (!$order || $order->status != OrderStatus::Pending) {
-                \Log::info("Order {$this->orderId} not pending. Stopping.");
+            if (!$order) {
+                \Log::info("Job: Order {$this->orderId} not found. Stopping search.");
+                return;
+            }
+
+            // ✅ Stop if order is no longer pending
+            if ($order->status != OrderStatus::Pending) {
+                \Log::info("Job: Order {$this->orderId} status changed to {$order->status->value}. Stopping search.");
+                return;
+            }
+
+            // ✅ Check if order already has a driver
+            if ($order->driver_id) {
+                \Log::info("Job: Order {$this->orderId} already assigned to driver {$order->driver_id}. Stopping search.");
                 return;
             }
             
@@ -53,42 +69,65 @@ class SearchDriversInNextZone implements ShouldQueue
             $nextRadius = $this->currentRadius + $initialRadius;
             
             if ($nextRadius > $maximumRadius) {
-                \Log::info("Max radius reached for order {$this->orderId}");
+                \Log::info("Job: Max radius {$maximumRadius}km reached for order {$this->orderId}. Stopping search.");
                 return;
             }
             
-            \Log::info("Expanding search to {$nextRadius}km for order {$this->orderId}");
+            \Log::info("Job: Expanding search to {$nextRadius}km for order {$this->orderId}");
             
+            // ✅ Check if order is still pending before checking drivers
+            $order->refresh();
+            if ($order->status != OrderStatus::Pending || $order->driver_id) {
+                \Log::info("Job: Order {$this->orderId} status changed during job execution. Stopping.");
+                return;
+            }
+
             // ✅ Just check if drivers exist - don't use Firestore in Job
             $availableDrivers = $this->checkAvailableDrivers($this->serviceId, $nextRadius);
             
             if ($availableDrivers > 0) {
-                \Log::info("Found {$availableDrivers} potential drivers in {$nextRadius}km - triggering web update");
+                \Log::info("Job: Found {$availableDrivers} potential drivers in {$nextRadius}km - triggering web update for order {$this->orderId}");
                 
+                // ✅ Final check before triggering Firebase update
+                $order->refresh();
+                if ($order->status != OrderStatus::Pending || $order->driver_id) {
+                    \Log::info("Job: Order {$this->orderId} status changed before Firebase update. Stopping.");
+                    return;
+                }
+
                 // ✅ Trigger a web request to update Firebase (has gRPC)
                 $this->triggerFirebaseUpdate($nextRadius);
+            } else {
+                \Log::info("Job: No drivers found in {$nextRadius}km for order {$this->orderId}");
             }
             
-            // Schedule next expansion
+            // ✅ Schedule next expansion only if order is still pending
             if ($nextRadius < $maximumRadius) {
-                SearchDriversInNextZone::dispatch(
-                    $this->orderId,
-                    $nextRadius,
-                    $this->serviceId,
-                    $this->userLat,
-                    $this->userLng
-                );
+                $order->refresh();
+                if ($order->status == OrderStatus::Pending && !$order->driver_id) {
+                    SearchDriversInNextZone::dispatch(
+                        $this->orderId,
+                        $nextRadius,
+                        $this->serviceId,
+                        $this->userLat,
+                        $this->userLng
+                    )->delay(now()->addSeconds(30));
+                    
+                    \Log::info("Job: Scheduled next zone search for order {$this->orderId} at radius {$nextRadius}km + {$initialRadius}km");
+                } else {
+                    \Log::info("Job: Not scheduling next zone - order {$this->orderId} is no longer pending");
+                }
             }
             
         } catch (\Exception $e) {
-            \Log::error("Error in SearchDriversInNextZone: " . $e->getMessage());
+            \Log::error("Job Error in SearchDriversInNextZone for order {$this->orderId}: " . $e->getMessage());
         }
     }
     
     /**
-     * Check if drivers are available (MySQL only - no Firestore)
+     * ✅ Check if drivers are available (MySQL only - no Firestore)
      */
-     private function checkAvailableDrivers($serviceId, $radius)
+    private function checkAvailableDrivers($serviceId, $radius)
     {
         $minWalletBalance = \DB::table('settings')
             ->where('key', 'minimum_money_in_wallet_driver_to_get_order')
@@ -119,12 +158,11 @@ class SearchDriversInNextZone implements ShouldQueue
     }
     
     /**
-     * Trigger Firebase update via HTTP request (runs in web context with gRPC)
+     * ✅ Trigger Firebase update via HTTP request (runs in web context with gRPC)
      */
     private function triggerFirebaseUpdate($radius)
     {
         try {
-            // Option 1: HTTP request to your own endpoint
             $url = config('app.url') . '/api/internal/update-order-radius';
             
             $ch = curl_init($url);
@@ -141,12 +179,17 @@ class SearchDriversInNextZone implements ShouldQueue
             curl_setopt($ch, CURLOPT_TIMEOUT, 5);
             
             $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             curl_close($ch);
             
-            \Log::info("Triggered Firebase update via HTTP for order {$this->orderId}");
+            if ($httpCode == 200) {
+                \Log::info("Job: Successfully triggered Firebase update for order {$this->orderId} at {$radius}km");
+            } else {
+                \Log::warning("Job: Firebase update returned HTTP {$httpCode} for order {$this->orderId}");
+            }
             
         } catch (\Exception $e) {
-            \Log::error("Failed to trigger Firebase update: " . $e->getMessage());
+            \Log::error("Job: Failed to trigger Firebase update for order {$this->orderId}: " . $e->getMessage());
         }
     }
 }

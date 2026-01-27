@@ -47,8 +47,21 @@ class OrderController extends Controller
             $radius = $request->radius;
 
             $order = Order::find($orderId);
-            if (!$order || $order->status != OrderStatus::Pending) {
-                return response()->json(['success' => false]);
+            
+            // ✅ Strict validation before proceeding
+            if (!$order) {
+                \Log::warning("updateOrderRadius: Order {$orderId} not found");
+                return response()->json(['success' => false, 'reason' => 'order_not_found']);
+            }
+
+            if ($order->status != OrderStatus::Pending) {
+                \Log::info("updateOrderRadius: Order {$orderId} no longer pending (status: {$order->status->value})");
+                return response()->json(['success' => false, 'reason' => 'order_not_pending']);
+            }
+
+            if ($order->driver_id) {
+                \Log::info("updateOrderRadius: Order {$orderId} already has driver {$order->driver_id}");
+                return response()->json(['success' => false, 'reason' => 'driver_already_assigned']);
             }
 
             // This runs in web context - has gRPC!
@@ -59,15 +72,20 @@ class OrderController extends Controller
                 $request->user_lng,
                 $orderId,
                 $request->service_id,
-                $radius * 1000,
+                $radius * 1000, // Convert km to meters
                 OrderStatus::Pending->value
             );
 
-            \Log::info("Updated Firebase for order {$orderId} at {$radius}km via HTTP");
+            \Log::info("Updated Firebase for order {$orderId} at {$radius}km via HTTP. Result: " . ($result['success'] ? 'success' : 'failed'));
 
-            return response()->json(['success' => true, 'result' => $result]);
+            return response()->json([
+                'success' => $result['success'],
+                'result' => $result,
+                'drivers_found' => $result['drivers_found'] ?? 0
+            ]);
+            
         } catch (\Exception $e) {
-            \Log::error("Error in updateOrderRadius: " . $e->getMessage());
+            \Log::error("Error in updateOrderRadius for order {$orderId}: " . $e->getMessage());
             return response()->json(['success' => false, 'error' => $e->getMessage()]);
         }
     }
@@ -380,7 +398,7 @@ class OrderController extends Controller
                     ),
                 ]);
 
-                // Record coupon usage if a coupon was applied
+                // Record coupon usage if applied
                 if ($couponId) {
                     DB::table('user_coupons')->insert([
                         'coupon_id' => $couponId,
@@ -392,22 +410,17 @@ class OrderController extends Controller
 
                 DB::commit();
 
-                // Get initial search radius from settings
-                $initialRadius = DB::table('settings')
-                    ->where('key', 'find_drivers_in_radius')
-                    ->value('value') ?? 5;
-
-                // Start progressive driver search in first zone (e.g., 5km)
+                // ✅ FIX: Start search immediately (no delay for first zone)
                 $result = $this->driverLocationService->findAndStoreOrderInFirebase(
                     $request->start_lat,
                     $request->start_lng,
                     $order->id,
                     $request->service_id,
-                    null, // Let the service use settings values
+                    null,
                     OrderStatus::Pending->value
                 );
 
-                // If drivers found in first zone, schedule job for next zone after 30 seconds
+                // ✅ FIX: Schedule next zone search ONLY if needed and order is still pending
                 if ($result['success'] && isset($result['next_radius']) && $result['next_radius'] !== null) {
                     \App\Jobs\SearchDriversInNextZone::dispatch(
                         $order->id,
@@ -415,13 +428,13 @@ class OrderController extends Controller
                         $request->service_id,
                         $request->start_lat,
                         $request->start_lng
-                    );
+                    )->delay(now()->addSeconds(30)); // ✅ Move delay here
                 }
 
                 return response()->json([
                     'status' => true,
                     'message' => $result['success']
-                        ? 'Order created successfully. Searching for drivers in ' . ($result['search_radius'] ?? $initialRadius) . 'km radius.'
+                        ? 'Order created successfully. Searching for drivers in ' . ($result['search_radius'] ?? 5) . 'km radius.'
                         : $result['message'],
                     'data' => [
                         'order' => $order->load(['service', 'coupon']),
@@ -430,7 +443,7 @@ class OrderController extends Controller
                         'discount_applied' => $discountValue,
                         'driver_search' => [
                             'drivers_found' => $result['drivers_found'] ?? 0,
-                            'current_search_radius' => $result['search_radius'] ?? $initialRadius,
+                            'current_search_radius' => $result['search_radius'] ?? 5,
                             'next_search_radius' => $result['next_radius'] ?? null,
                             'will_expand_search' => ($result['next_radius'] ?? null) !== null,
                             'wait_time_seconds' => 30,
@@ -739,9 +752,21 @@ class OrderController extends Controller
             }
 
             if ($isPendingOrder) {
+                // ✅ CRITICAL: Update order status BEFORE moving to spam
+                // This will stop any running jobs from processing this order
+                $order->status = OrderStatus::UserCancelOrder;
+                $order->reason_for_cancel = $request->reason_for_cancel;
+                $order->save();
+
+                // ✅ Wait a moment for any running jobs to check status
+                sleep(1);
+
                 // Move pending order to spam_orders table
                 $spamOrder = $this->moveOrderToSpamTable($order, $request->reason_for_cancel);
                 $order->delete();
+
+                // ✅ Remove from Firebase immediately
+                $this->removeOrderFromFirebase($id);
 
                 $responseData = [
                     'order_id' => $id,
@@ -763,6 +788,9 @@ class OrderController extends Controller
                 if ($order->driver_id) {
                     EnhancedFCMService::sendOrderStatusToDriver($id, OrderStatus::UserCancelOrder);
                 }
+
+                // ✅ Remove from Firebase
+                $this->removeOrderFromFirebase($id);
 
                 $responseData = [
                     'order_id' => $order->id,
@@ -787,6 +815,25 @@ class OrderController extends Controller
                 'success' => false,
                 'message' => 'Error cancelling order: ' . $e->getMessage()
             ], 500);
+        }
+    }
+
+    // ✅ NEW: Helper method to remove order from Firebase
+    private function removeOrderFromFirebase($orderId)
+    {
+        try {
+            $projectId = config('firebase.project_id');
+            $baseUrl = "https://firestore.googleapis.com/v1/projects/{$projectId}/databases/(default)/documents";
+            
+            $response = Http::timeout(5)->delete("{$baseUrl}/ride_requests/{$orderId}");
+            
+            if ($response->successful()) {
+                \Log::info("Order {$orderId} removed from Firebase");
+            } else {
+                \Log::warning("Failed to remove order {$orderId} from Firebase: " . $response->body());
+            }
+        } catch (\Exception $e) {
+            \Log::error("Error removing order {$orderId} from Firebase: " . $e->getMessage());
         }
     }
 
@@ -819,7 +866,7 @@ class OrderController extends Controller
     private function moveOrderToSpamTable($order, $reasonForCancel)
     {
         $spamOrder = OrderSpam::create([
-            'original_order_id' => $order->id, 
+            'original_order_id' => $order->id,
             'number' => $order->number,
             'status' => OrderStatus::UserCancelOrder->value,
             'payment_method' => $order->payment_method->value,
