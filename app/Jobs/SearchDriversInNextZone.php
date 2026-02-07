@@ -21,8 +21,8 @@ class SearchDriversInNextZone implements ShouldQueue
     protected $userLat;
     protected $userLng;
 
-    public $tries = 1; // ✅ Only try once
-    public $timeout = 30; // ✅ Max 30 seconds
+    public $tries = 1;
+    public $timeout = 30;
 
     public function __construct($orderId, $currentRadius, $serviceId, $userLat, $userLng)
     {
@@ -31,14 +31,11 @@ class SearchDriversInNextZone implements ShouldQueue
         $this->serviceId = $serviceId;
         $this->userLat = $userLat;
         $this->userLng = $userLng;
-        
-        // ✅ DON'T set delay here - it's set when dispatching
     }
 
     public function handle()
     {
         try {
-            // ✅ CRITICAL: Check order status at the very start
             $order = Order::find($this->orderId);
             
             if (!$order) {
@@ -46,15 +43,17 @@ class SearchDriversInNextZone implements ShouldQueue
                 return;
             }
 
-            // ✅ Stop if order is no longer pending
             if ($order->status != OrderStatus::Pending) {
                 \Log::info("Job: Order {$this->orderId} status changed to {$order->status->value}. Stopping search.");
+                // ✅ Mark search as ended when order status changes
+                app(\App\Services\DriverLocationService::class)->updateEndSearchFlag($this->orderId, true);
                 return;
             }
 
-            // ✅ Check if order already has a driver
             if ($order->driver_id) {
                 \Log::info("Job: Order {$this->orderId} already assigned to driver {$order->driver_id}. Stopping search.");
+                // ✅ Mark search as ended when driver is assigned
+                app(\App\Services\DriverLocationService::class)->updateEndSearchFlag($this->orderId, true);
                 return;
             }
             
@@ -70,38 +69,40 @@ class SearchDriversInNextZone implements ShouldQueue
             
             if ($nextRadius > $maximumRadius) {
                 \Log::info("Job: Max radius {$maximumRadius}km reached for order {$this->orderId}. Stopping search.");
+                // ✅ Mark search as ended when max radius is reached
+                app(\App\Services\DriverLocationService::class)->updateEndSearchFlag($this->orderId, true);
                 return;
             }
             
             \Log::info("Job: Expanding search to {$nextRadius}km for order {$this->orderId}");
             
-            // ✅ Check if order is still pending before checking drivers
             $order->refresh();
             if ($order->status != OrderStatus::Pending || $order->driver_id) {
                 \Log::info("Job: Order {$this->orderId} status changed during job execution. Stopping.");
+                // ✅ Mark search as ended
+                app(\App\Services\DriverLocationService::class)->updateEndSearchFlag($this->orderId, true);
                 return;
             }
 
-            // ✅ Just check if drivers exist - don't use Firestore in Job
             $availableDrivers = $this->checkAvailableDrivers($this->serviceId, $nextRadius);
             
             if ($availableDrivers > 0) {
                 \Log::info("Job: Found {$availableDrivers} potential drivers in {$nextRadius}km - triggering web update for order {$this->orderId}");
                 
-                // ✅ Final check before triggering Firebase update
                 $order->refresh();
                 if ($order->status != OrderStatus::Pending || $order->driver_id) {
                     \Log::info("Job: Order {$this->orderId} status changed before Firebase update. Stopping.");
+                    // ✅ Mark search as ended
+                    app(\App\Services\DriverLocationService::class)->updateEndSearchFlag($this->orderId, true);
                     return;
                 }
 
-                // ✅ Trigger a web request to update Firebase (has gRPC)
                 $this->triggerFirebaseUpdate($nextRadius);
             } else {
                 \Log::info("Job: No drivers found in {$nextRadius}km for order {$this->orderId}");
             }
             
-            // ✅ Schedule next expansion only if order is still pending
+            // Schedule next expansion or end search
             if ($nextRadius < $maximumRadius) {
                 $order->refresh();
                 if ($order->status == OrderStatus::Pending && !$order->driver_id) {
@@ -116,17 +117,26 @@ class SearchDriversInNextZone implements ShouldQueue
                     \Log::info("Job: Scheduled next zone search for order {$this->orderId} at radius {$nextRadius}km + {$initialRadius}km");
                 } else {
                     \Log::info("Job: Not scheduling next zone - order {$this->orderId} is no longer pending");
+                    // ✅ Mark search as ended
+                    app(\App\Services\DriverLocationService::class)->updateEndSearchFlag($this->orderId, true);
                 }
+            } else {
+                // ✅ Reached max radius - mark search as ended
+                \Log::info("Job: Reached maximum radius for order {$this->orderId}. Search complete.");
+                app(\App\Services\DriverLocationService::class)->updateEndSearchFlag($this->orderId, true);
             }
             
         } catch (\Exception $e) {
             \Log::error("Job Error in SearchDriversInNextZone for order {$this->orderId}: " . $e->getMessage());
+            // ✅ Mark search as ended on error
+            try {
+                app(\App\Services\DriverLocationService::class)->updateEndSearchFlag($this->orderId, true);
+            } catch (\Exception $ex) {
+                \Log::error("Failed to update end_search flag: " . $ex->getMessage());
+            }
         }
     }
     
-    /**
-     * ✅ Check if drivers are available (MySQL only - no Firestore)
-     */
     private function checkAvailableDrivers($serviceId, $radius)
     {
         $minWalletBalance = \DB::table('settings')
@@ -147,7 +157,6 @@ class SearchDriversInNextZone implements ShouldQueue
                     ->where('driver_services.status', 1);
             });
         
-        // ✅ Exclude drivers who rejected this order
         $query->whereNotIn('id', function($subQuery) {
             $subQuery->select('driver_id')
                 ->from('order_rejections')
@@ -157,9 +166,6 @@ class SearchDriversInNextZone implements ShouldQueue
         return $query->count();
     }
     
-    /**
-     * ✅ Trigger Firebase update via HTTP request (runs in web context with gRPC)
-     */
     private function triggerFirebaseUpdate($radius)
     {
         try {

@@ -86,7 +86,8 @@ Route::group(['prefix' => 'v1/user'], function () {
         Route::put('/addresses/{id}', [UserAddressController::class, 'update']);
         Route::delete('/addresses/{id}', [UserAddressController::class, 'destroy']);
 
-        Route::get('/wallet/transactions', [WalletController::class, 'getTransactions']);
+        Route::get('/wallet/transactions', [WalletController::class, 'getWalletTransactions']);
+        Route::get('/app-credit/transactions', [WalletController::class, 'getAppCreditTransactions']);
 
         // not use
         Route::get('/complaints', [ComplaintController::class, 'index']);
