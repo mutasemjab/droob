@@ -1378,7 +1378,7 @@ return [
     'الحد الأدنى لرصيد محفظة السائق لاستقبال الطلبات',
 
     'can_driver_withdrawal' =>
-'هل يمكن للسائق سحب الرصيد من محفظته؟ (1 => نعم، 2 => لا)',
+    'هل يمكن للسائق سحب الرصيد من محفظته؟ (1 => نعم، 2 => لا)',
 
     'times_that_driver_cancel_orders_in_one_day' =>
     'عدد مرات إلغاء الطلبات المسموح بها يومياً للسائق',
@@ -1907,7 +1907,7 @@ return [
     // Time
     'Minutes' => 'دقيقة',
     'Hours' => 'ساعة',
-      'wallet_distributions' => 'توزيع المحفظة',
+    'wallet_distributions' => 'توزيع المحفظة',
     'add_distribution' => 'إضافة توزيع جديد',
     'edit_distribution' => 'تعديل التوزيع',
     'total_amount' => 'المبلغ الإجمالي',
@@ -1930,14 +1930,14 @@ return [
     'save' => 'حفظ',
     'update' => 'تحديث',
     'back' => 'رجوع',
-    
+
     // System Status
     'system_status' => 'حالة النظام',
     'system_enabled' => 'النظام مفعّل',
     'system_disabled' => 'النظام معطّل',
     'enable_system' => 'تفعيل النظام',
     'disable_system' => 'تعطيل النظام',
-    
+
     // Messages
     'distribution_created_successfully' => 'تم إنشاء التوزيع بنجاح',
     'distribution_updated_successfully' => 'تم تحديث التوزيع بنجاح',
@@ -1947,7 +1947,7 @@ return [
     'distribution_system_enabled' => 'تم تفعيل نظام توزيع المحفظة',
     'distribution_system_disabled' => 'تم تعطيل نظام توزيع المحفظة',
     'no_distributions_found' => 'لا توجد توزيعات',
-    
+
     // Validation
     'total_amount_required' => 'المبلغ الإجمالي مطلوب',
     'total_amount_numeric' => 'المبلغ الإجمالي يجب أن يكون رقماً',
@@ -1955,19 +1955,71 @@ return [
     'number_of_orders_required' => 'عدد الرحلات مطلوب',
     'number_of_orders_integer' => 'عدد الرحلات يجب أن يكون رقماً صحيحاً',
     'number_of_orders_min' => 'عدد الرحلات يجب أن يكون على الأقل 1',
-    
+
     // Help Text
     'enter_total_amount' => 'أدخل المبلغ الإجمالي',
     'total_amount_help' => 'المبلغ الذي سيتم توزيعه على عدد من الرحلات (مثال: 2 دينار)',
     'enter_number_of_orders' => 'أدخل عدد الرحلات',
     'number_of_orders_help' => 'عدد الرحلات التي سيتم توزيع المبلغ عليها (مثال: 4 رحلات)',
     'amount_per_order_help' => 'سيتم حساب هذا المبلغ تلقائياً (المبلغ الإجمالي ÷ عدد الرحلات)',
-    
+
     // How it works
     'how_it_works' => 'كيف يعمل النظام؟',
     'distribution_explanation_1' => 'قم بإنشاء توزيع جديد بتحديد المبلغ الإجمالي وعدد الرحلات',
     'distribution_explanation_2' => 'عند تفعيل التوزيع، سيتم تطبيقه تلقائياً على جميع المستخدمين',
     'distribution_explanation_3' => 'في كل رحلة، سيتم خصم المبلغ المحدد فقط من محفظة المستخدم',
     'distribution_explanation_4' => 'يمكن تفعيل توزيع واحد فقط في نفس الوقت',
+    'Last_Login' => 'آخر تسجيل دخول',
+    'Last_Login_From' => 'آخر تسجيل دخول من',
+    'Last_Login_To' => 'آخر تسجيل دخول إلى',
+    'Online' => 'متصل',
+    'Offline' => 'غير متصل',
+    'Online_Status' => 'حالة الاتصال',
+    'Never_Logged_In' => 'لم يسجل دخول مطلقاً',
+    'Registration_Date' => 'تاريخ التسجيل',
+    'Sort_By' => 'ترتيب حسب',
+    // Referral System Translations
+    'user_referral_user_reward' => 'مكافأة إحالة مستخدم لمستخدم (دينار)',
+    'driver_referral_user_reward' => 'مكافأة إحالة  سائق لمستخدم (دينار)',
+    'number_of_referral_user_to_reward' => 'عدد الإحالات المطلوبة',
+    'number_of_order_to_get_reward' => 'عدد الطلبات للحصول على المكافأة',
+
+    // Descriptions (optional, for tooltips or help text)
+    'user_referral_user_reward_desc' => 'المبلغ المدفوع عندما يقوم مستخدم بإحالة مستخدم آخر',
+    'driver_referral_user_reward_desc' => 'المبلغ المدفوع عندما يقوم مستخدم بإحالة سائق',
+    'number_of_referral_user_to_reward_desc' => 'كم عدد المستخدمين المطلوب إحالتهم (محجوز للمستقبل)',
+    'number_of_order_to_get_reward_desc' => 'كم عدد الطلبات التي يجب أن يكملها الشخص المُحال قبل حصول المُحيل على المكافأة',
+
+    // Additional translations
+    'Referral_Settings' => 'إعدادات الإحالة',
+    'Referral_System' => 'نظام الإحالة',
+    'Reward_Amount' => 'مبلغ المكافأة',
+    'Orders_Required' => 'الطلبات المطلوبة',
+    'enable_app_credit_distribution_system' => 'تشغيل نظام توزيع رصيد التطبيق',
+    'Adding_new_payment_will_create_new_record' => 'إنشاء رصيد في محفظة السائق',
+        'times_that_user_cancel_orders_in_one_day' => 'عدد مرات المسموح لليوزر الغاء الطلب في اليوم',
+    'fee_when_user_cancel_order_more_times' => 'رسوم الالغاء التي ستخصم من اليوزر اذا تجاوز الحد',
+    '' => '',
+    '' => '',
+    '' => '',
+    '' => '',
+    '' => '',
+    '' => '',
+    '' => '',
+    '' => '',
+    '' => '',
+    '' => '',
+    '' => '',
+    '' => '',
+    '' => '',
+    '' => '',
+    '' => '',
+    '' => '',
+    '' => '',
+    '' => '',
+    '' => '',
+    '' => '',
+    '' => '',
+
 
 ];

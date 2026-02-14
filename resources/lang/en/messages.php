@@ -1341,15 +1341,15 @@ return [
     'No_data' => 'No data found',
     'minimum_money_in_wallet_driver_to_get_order' =>
     'Minimum driver wallet balance to receive orders',
-   
+
     'can_driver_withdrawal' =>
     'Can driver withdrawal from his wallet (1=>Yes, 2=>No)',
 
     'times_that_driver_cancel_orders_in_one_day' =>
-    'Number of order cancellations allowed per day',
+    'Number of order cancellations allowed per day for driver',
 
     'fee_when_driver_cancel_order_more_times' =>
-    'Penalty fee when driver exceeds cancellation limit',
+    'Penalty fee when driver exceeds cancellation limit for driver',
 
     'new_user_register_add_balance' =>
     'Bonus balance for new user registration',
@@ -1895,14 +1895,14 @@ return [
     'save' => 'Save',
     'update' => 'Update',
     'back' => 'Back',
-    
+
     // System Status
     'system_status' => 'System Status',
     'system_enabled' => 'System Enabled',
     'system_disabled' => 'System Disabled',
     'enable_system' => 'Enable System',
     'disable_system' => 'Disable System',
-    
+
     // Messages
     'distribution_created_successfully' => 'Distribution created successfully',
     'distribution_updated_successfully' => 'Distribution updated successfully',
@@ -1912,7 +1912,7 @@ return [
     'distribution_system_enabled' => 'Wallet distribution system enabled',
     'distribution_system_disabled' => 'Wallet distribution system disabled',
     'no_distributions_found' => 'No distributions found',
-    
+
     // Validation
     'total_amount_required' => 'Total amount is required',
     'total_amount_numeric' => 'Total amount must be a number',
@@ -1920,24 +1920,50 @@ return [
     'number_of_orders_required' => 'Number of orders is required',
     'number_of_orders_integer' => 'Number of orders must be an integer',
     'number_of_orders_min' => 'Number of orders must be at least 1',
-    
+
     // Help Text
     'enter_total_amount' => 'Enter total amount',
     'total_amount_help' => 'The amount to be distributed across orders (e.g., 2 JD)',
     'enter_number_of_orders' => 'Enter number of orders',
     'number_of_orders_help' => 'Number of orders the amount will be distributed across (e.g., 4 orders)',
     'amount_per_order_help' => 'This will be calculated automatically (Total Amount ÷ Number of Orders)',
-    
+
     // How it works
     'how_it_works' => 'How It Works?',
     'distribution_explanation_1' => 'Create a new distribution by specifying total amount and number of orders',
     'distribution_explanation_2' => 'When activated, it will automatically apply to all users',
     'distribution_explanation_3' => 'For each order, only the specified amount will be deducted from user wallet',
     'distribution_explanation_4' => 'Only one distribution can be active at a time',
-    '' => '',
-    '' => '',
-    '' => '',
-    '' => '',
+    'Last_Login' => 'Last Login',
+'Last_Login_From' => 'Last Login From',
+'Last_Login_To' => 'Last Login To',
+'Online' => 'Online',
+'Offline' => 'Offline',
+'Online_Status' => 'Online Status',
+'Never_Logged_In' => 'Never Logged In',
+'Registration_Date' => 'Registration Date',
+'Sort_By' => 'Sort By',
+ // Referral System Translations
+    'user_referral_user_reward' => 'User Referral User Reward (JD)',
+    'driver_referral_user_reward' => 'Driver Referral User Reward (JD)',
+    'number_of_referral_user_to_reward' => 'Number of Referrals Required',
+    'number_of_order_to_get_reward' => 'Number of Orders to Get Reward',
+
+    // Descriptions (optional, for tooltips or help text)
+    'user_referral_user_reward_desc' => 'Amount paid when a user refers another user',
+    'driver_referral_user_reward_desc' => 'Amount paid when a user refers a driver',
+    'number_of_referral_user_to_reward_desc' => 'How many users need to be referred (reserved for future)',
+    'number_of_order_to_get_reward_desc' => 'How many orders the referred person must complete before referrer gets reward',
+
+    // Additional translations
+    'Referral_Settings' => 'Referral Settings',
+    'Referral_System' => 'Referral System',
+    'Reward_Amount' => 'Reward Amount',
+    'Orders_Required' => 'Orders Required',
+    'enable_app_credit_distribution_system' => 'Enable app credit distribution system',
+    'Adding_new_payment_will_create_new_record' => 'Adding new payment will create new record',
+    'times_that_user_cancel_orders_in_one_day' => 'Number of order cancellations allowed per day for user',
+    'fee_when_user_cancel_order_more_times' => 'Penalty fee when driver exceeds cancellation limit for user',
     '' => '',
     '' => '',
     '' => '',
