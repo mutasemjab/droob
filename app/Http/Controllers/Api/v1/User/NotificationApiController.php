@@ -105,14 +105,40 @@ class NotificationApiController extends Controller
 
     public function sendToUser(Request $request)
     {
-        $this->validate($request, [
+        \Log::info('sendToUser hit', [
+            'content_type' => $request->header('Content-Type'),
+            'raw_body'     => $request->getContent(),
+            'parsed'       => $request->all(),
+            'driver'       => Auth::guard('driver-api')->id(),
+        ]);
+        // ✅ Handle driver app sending wrong Content-Type
+        // Force merge JSON body if request->all() is empty
+        if (empty($request->all()) && !empty($request->getContent())) {
+            $jsonData = json_decode($request->getContent(), true);
+            if (is_array($jsonData)) {
+                $request->merge($jsonData);
+            }
+        }
+
+        if ($request->has('sender_user_id') && !$request->has('user_id')) {
+            $request->merge(['user_id' => $request->sender_user_id]);
+        }
+
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
             'user_id' => 'required|integer',
             'message' => 'required|string|max:500',
         ]);
 
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Validation failed',
+                'errors'  => $validator->errors()
+            ], 422);
+        }
+
         try {
-            // ✅ احصل على السائق المصادق من driver-api guard
-            $driver = $request->user();
+            $driver = Auth::guard('driver-api')->user();
 
             if (!$driver) {
                 return response()->json([
@@ -127,21 +153,16 @@ class NotificationApiController extends Controller
                 $driver->id
             );
 
-            if ($response) {
-                return response()->json([
-                    'status' => true,
-                    'message' => 'Notification sent successfully to user'
-                ], 200);
-            } else {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'Failed to send notification to user'
-                ], 400);
-            }
-        } catch (\Exception $e) {
-            \Log::error('FCM Error: ' . $e->getMessage());
             return response()->json([
-                'status' => false,
+                'status'  => (bool) $response,
+                'message' => $response
+                    ? 'Notification sent successfully to user'
+                    : 'Failed to send notification to user'
+            ], $response ? 200 : 400);
+        } catch (\Exception $e) {
+            \Log::error('sendToUser exception: ' . $e->getMessage());
+            return response()->json([
+                'status'  => false,
                 'message' => 'An error occurred: ' . $e->getMessage()
             ], 500);
         }
